@@ -46,8 +46,11 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setAdapter(mDeviceListAdapter = new DeviceAdapter(this, (castDevice, selected) -> {
             mDeviceListAdapter.setSelectedDevice(selected ? castDevice : null);
         }));
-        DLNACastManager.getInstance().registerDeviceListener(mDeviceListAdapter);
+
+        // 手动搜索设备
 //        DLNACastManager.getInstance().search(null, 60);
+        // 会自动搜索局域网内的设备
+        DLNACastManager.getInstance().registerDeviceListener(mDeviceListAdapter);
     }
 
     @Override
@@ -55,5 +58,11 @@ public class MainActivity extends AppCompatActivity {
         super.onStart();
         resetToolbar();
         DLNACastManager.getInstance().bindCastService(this);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        DLNACastManager.getInstance().unbindCastService(this);
     }
 }

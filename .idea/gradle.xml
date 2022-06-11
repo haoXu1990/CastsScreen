@@ -17,6 +17,7 @@
             <option value="$PROJECT_DIR$/dlna-dmr" />
             <option value="$PROJECT_DIR$/dlna-dms" />
             <option value="$PROJECT_DIR$/dlna-webserver" />
+            <option value="$PROJECT_DIR$/renderer" />
           </set>
         </option>
       </GradleProjectSettings>

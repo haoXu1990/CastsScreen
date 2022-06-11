@@ -33,7 +33,7 @@ import org.fourthline.cling.support.renderingcontrol.lastchange.RenderingControl
 
 public class DLNARenderActivity extends AppCompatActivity {
     private static final String KEY_EXTRA_CURRENT_URI = "Renderer.KeyExtra.CurrentUri";
-    private static final String TAG = "DLNARendererActivity";
+    private static final String TAG = "DLNARenderActivity";
     public static void startActivity(Context context, String currentURI) {
         Log.i(TAG, "startActivity", new Exception());
         Intent intent = new Intent(context, DLNARenderActivity.class);
