@@ -22,7 +22,7 @@ public class DeviceWiFiInfo {
     private static final String WIFI_NO_CONNECT = "<not connect>";
     private static final String WIFI_NO_PERMISSION = "<permission deny>";
 
-    private static final String UNKNOWN = "<unknown>";
+    public static final String UNKNOWN = "<unknown>";
 
     /**
      * need permission 'Manifest.permission.ACCESS_FINE_LOCATION' and 'Manifest.permission.ACCESS_WIFI_STATE' if system sdk >= Android O.

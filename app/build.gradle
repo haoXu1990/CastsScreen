@@ -4,14 +4,14 @@ plugins {
 }
 
 android {
-    compileSdkVersion 30
-    buildToolsVersion "30.0.3"
+    compileSdkVersion rootProject.ext.compileSdkVersion
+    buildToolsVersion rootProject.ext.buildToolsVersion
 
     defaultConfig {
         applicationId "com.android.zxkj.cast_screen"
-        minSdkVersion 21
+        minSdkVersion rootProject.ext.minSdkVersion
         //noinspection ExpiredTargetSdkVersion
-        targetSdkVersion 30
+        targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -24,6 +24,7 @@ android {
     }
     packagingOptions {
         exclude 'META-INF/beans.xml'
+        exclude "META-INF/DEPENDENCIES"
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
