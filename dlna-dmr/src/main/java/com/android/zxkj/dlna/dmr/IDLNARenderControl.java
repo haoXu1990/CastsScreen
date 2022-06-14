@@ -1,5 +1,9 @@
 package com.android.zxkj.dlna.dmr;
 
+import android.os.Handler;
+import android.os.Looper;
+import android.util.Log;
+
 import com.google.android.exoplayer2.ExoPlayer;
 
 public interface IDLNARenderControl {
@@ -21,6 +25,8 @@ public interface IDLNARenderControl {
     final class VideoViewRenderControl implements IDLNARenderControl {
 
         private final ExoPlayer videoView;
+
+        private final Handler mHandler = new Handler(Looper.getMainLooper());
 
         public VideoViewRenderControl(ExoPlayer videoView) {
             this.videoView = videoView;

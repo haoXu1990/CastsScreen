@@ -3,6 +3,7 @@ package com.android.zxkj.dlna.dmc;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -135,6 +136,7 @@ abstract class QueryRequest<T> {
 
         @Override
         protected ActionCallback getAction() {
+            Log.d("QueryRequest", String.valueOf(new Exception()));
             return getService() != null ?
                     new GetPositionInfo(getService()) {
                         @Override

@@ -1,5 +1,8 @@
 package com.android.zxkj.dlna.dmr.service;
 
+import android.os.Looper;
+import android.util.Log;
+
 import org.fourthline.cling.model.types.UnsignedIntegerFourBytes;
 import org.fourthline.cling.support.avtransport.AVTransportException;
 import org.fourthline.cling.support.avtransport.AbstractAVTransportService;
@@ -38,6 +41,10 @@ public class AVTransportServiceImpl extends AbstractAVTransportService {
     }
 
     public PositionInfo getPositionInfo(UnsignedIntegerFourBytes instanceId) {
+        if (Looper.getMainLooper() == Looper.myLooper()) {
+            Log.d("", "");
+        }
+        Log.d("AVTransportServiceImpl", "getPositionInfo: ", new Exception());
         return mRenderControlManager.getAvTransportControl(instanceId).getPositionInfo();
     }
 

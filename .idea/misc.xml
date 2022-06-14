@@ -6,7 +6,12 @@
         <entry key="..\:/work/Android/ZXKJ-CastsScreen/app/src/main/res/drawable-v24/ic_launcher_foreground.xml" value="0.183" />
         <entry key="..\:/work/Android/ZXKJ-CastsScreen/app/src/main/res/layout/activity_main.xml" value="0.1625" />
         <entry key="..\:/work/Android/ZXKJ-CastsScreen/app/src/main/res/layout/content_main.xml" value="0.16145833333333334" />
+        <entry key="..\:/work/Android/ZXKJ-CastsScreen/app/src/main/res/layout/fragment_cast.xml" value="0.12760416666666666" />
+        <entry key="..\:/work/Android/ZXKJ-CastsScreen/app/src/main/res/layout/fragment_control.xml" value="0.1765625" />
+        <entry key="..\:/work/Android/ZXKJ-CastsScreen/app/src/main/res/layout/fragment_local_control.xml" value="0.1765625" />
         <entry key="..\:/work/Android/ZXKJ-CastsScreen/app/src/main/res/layout/item_device.xml" value="0.25" />
+        <entry key="..\:/work/Android/ZXKJ-CastsScreen/app/src/main/res/layout/layout_control.xml" value="0.1765625" />
+        <entry key="..\:/work/Android/ZXKJ-CastsScreen/app/src/main/res/menu/main_options.xml" value="0.1140625" />
         <entry key="..\:/work/Android/ZXKJ-CastsScreen/renderer/src/main/res/drawable/ic_launcher_background.xml" value="0.1" />
         <entry key="..\:/work/Android/ZXKJ-CastsScreen/renderer/src/main/res/layout/activity_main.xml" value="0.1" />
       </map>

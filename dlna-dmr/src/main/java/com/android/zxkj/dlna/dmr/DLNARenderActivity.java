@@ -8,6 +8,7 @@ import android.content.ServiceConnection;
 import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.Looper;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -107,7 +108,7 @@ public class DLNARenderActivity extends AppCompatActivity {
 
         mVideoView = findViewById(R.id.video_view);
 
-        mPlayer = new SimpleExoPlayer.Builder(this).build();
+        mPlayer = new SimpleExoPlayer.Builder(this).setLooper(Looper.getMainLooper()).build();
         mPlayer.addListener(mPlayerListenner);
         mVideoView.setPlayer(mPlayer);
 
