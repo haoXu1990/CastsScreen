@@ -7,17 +7,21 @@ import androidx.annotation.Nullable;
 
 import com.android.zxkj.dlna.core.ICast;
 import com.android.zxkj.dlna.core.utils.CastMetaInfo;
-import com.android.zxkj.dlna.core.utils.CastUtils;
 
 import org.fourthline.cling.controlpoint.ControlPoint;
 import org.fourthline.cling.model.meta.Device;
 
 import java.util.Map;
 
+//　控制实现类
 public class ControlImpl implements ICastInterface.IControl {
+    // 服务工厂，通过它可以得到  ActionServer 或则 RendererServer
     private final IServiceFactory mServiceFactory;
+    // 设备
     private final Device<?, ?, ?> mDevice;
+    // 回调
     private final Map<String, IServiceAction.IServiceActionCallback<?>> mCallbackMap;
+    // 播放源URI
     private String mUri;
 
     public ControlImpl(@NonNull ControlPoint controlPoint, @NonNull Device<?, ?, ?> device,
@@ -25,11 +29,13 @@ public class ControlImpl implements ICastInterface.IControl {
         mDevice = device;
         mCallbackMap = map;
         mServiceFactory = new IServiceFactory.ServiceFactoryImpl(controlPoint, device);
+
         ((BaseServiceExecutor) mServiceFactory.getAvService()).execute(event -> {
             if (subscriptionListener != null) {
                 subscriptionListener.onSubscriptionTransportStateChanged(event);
             }
         });
+
         ((BaseServiceExecutor) mServiceFactory.getRenderService()).execute(event -> {
             if (subscriptionListener != null) {
                 subscriptionListener.onSubscriptionTransportStateChanged(event);

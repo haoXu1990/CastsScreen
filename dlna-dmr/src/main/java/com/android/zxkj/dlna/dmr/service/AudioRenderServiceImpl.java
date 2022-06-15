@@ -6,6 +6,7 @@ import org.fourthline.cling.support.lastchange.LastChange;
 import org.fourthline.cling.support.model.Channel;
 import org.fourthline.cling.support.renderingcontrol.AbstractAudioRenderingControl;
 
+
 public class AudioRenderServiceImpl extends AbstractAudioRenderingControl {
     private static final Channel[] mMasterChannel = new Channel[]{Channel.Master};
     private final RenderControlManager renderControlManager;

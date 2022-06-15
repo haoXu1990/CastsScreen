@@ -4,6 +4,7 @@ import org.fourthline.cling.support.model.MediaInfo;
 import org.fourthline.cling.support.model.PositionInfo;
 import org.fourthline.cling.support.model.TransportInfo;
 
+// AV 的控制 interface
 public interface IServiceAction {
 
     enum ServiceAction {

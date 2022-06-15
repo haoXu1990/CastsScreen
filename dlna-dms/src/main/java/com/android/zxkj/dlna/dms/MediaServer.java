@@ -41,7 +41,7 @@ public final class MediaServer {
     private IResourceServer mResourceServer;
     private String mBaseUrl;
 
-    public MediaServer(Context context, String mBaseUrl) {
+    public MediaServer(Context context) {
         this(context, new IResourceServer.IResourecServerFactory.DefaultResourceServerFactoryImpl(PORT, DeviceWiFiInfo.getWiFiInfoIPAddress(context)));
     }
     public MediaServer(Context context, IResourceServer.IResourecServerFactory factory) {
@@ -73,7 +73,7 @@ public final class MediaServer {
     }
 
     @Nullable
-    public String getmBaseUrl() { return mBaseUrl; }
+    public String getBaseUrl() { return mBaseUrl; }
 
     @Nullable
     public LocalDevice getmDevice() { return mDevice; }

@@ -5,6 +5,8 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -12,12 +14,14 @@ import android.os.Looper;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.android.zxkj.dlna.dmr.widget.MyImageView;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.MediaItem;
@@ -33,6 +37,12 @@ import org.fourthline.cling.support.model.Channel;
 import org.fourthline.cling.support.model.TransportState;
 import org.fourthline.cling.support.renderingcontrol.lastchange.ChannelVolume;
 import org.fourthline.cling.support.renderingcontrol.lastchange.RenderingControlVariable;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 public class DLNARenderActivity extends AppCompatActivity {
     private static final String KEY_EXTRA_CURRENT_URI = "Renderer.KeyExtra.CurrentUri";
@@ -53,6 +63,7 @@ public class DLNARenderActivity extends AppCompatActivity {
     private DLNARendererService mRendererService;
 
     private StandardGSYVideoPlayer mVideoView;
+    private MyImageView mImageView;
 
 //    private final Player.EventListener mPlayerListenner = new Player.EventListener() {
 //        @Override
@@ -110,6 +121,8 @@ public class DLNARenderActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dlna_renderer);
 
+        mImageView = findViewById(R.id.image_view);
+        mImageView.setVisibility(View.INVISIBLE);
         mVideoView = findViewById(R.id.video_view);
         mVideoView.getBackButton().setVisibility(View.VISIBLE);
         mVideoView.setVideoAllCallBack(new VideoAllCallBack() {
@@ -117,6 +130,7 @@ public class DLNARenderActivity extends AppCompatActivity {
             public void onStartPrepared(String url, Object... objects) {
                 Log.d(TAG, "EXOPlayer start play");
                     mProgressBar.setVisibility(View.INVISIBLE);
+                    // 设置播放状态
                     notifyTransportStateChanged(TransportState.PLAYING);
             }
 
@@ -247,11 +261,22 @@ public class DLNARenderActivity extends AppCompatActivity {
         if (bundle != null) {
             mProgressBar.setVisibility(View.VISIBLE);
             String currentUri = bundle.getString(KEY_EXTRA_CURRENT_URI);
-            mVideoView.setUp(currentUri,false,"");
-            mVideoView.startPlayLogic();
-            // 播放成功以后应该设置 AVTransportController -> mOriginPositionInfo ，重新设置媒体信息的播放总时长
+            Log.d(TAG, "open Media Uir: "+ currentUri);
+            // 这个根据Uri 来判断播放音视频，还是播放图片
+            if (currentUri.endsWith(".png") || currentUri.endsWith(".jpg")) {
+                Log.d(TAG, "open Media Uir: "+ currentUri);
+                mVideoView.setVisibility(View.INVISIBLE);
+                mImageView.setVisibility(View.VISIBLE);
+                mProgressBar.setVisibility(View.INVISIBLE);
+                mImageView.setImageURL(currentUri);
+            } else {
+                Log.d(TAG, "open Media Uir: "+ currentUri);
+                mImageView.setVisibility(View.INVISIBLE);
+                mVideoView.setVisibility(View.VISIBLE);
+                mVideoView.setUp(currentUri,false,"");
+                mVideoView.startPlayLogic();
+            }
 
-//            mRendererService.createConfiguration()
             // 设置媒体信息
 //            MediaItem mediaItem =  MediaItem.fromUri(currentUri);
 //            mPlayer.setMediaItem(mediaItem);

@@ -50,11 +50,18 @@ public class DLNARendererService extends AndroidUpnpServiceImpl {
         context.getApplicationContext().startService(new Intent(context, DLNARendererService.class));
     }
 
+    // Render 控制器
     private final RenderControlManager mRenderControlManager = new RenderControlManager();
 
+    // AvTransport
     private LastChange mAvTransportLastChange;
+
+    // AudioTransport
     private LastChange mAudioControlLastChange;
+
     private final RendererServiceBinder mBinder = new RendererServiceBinder();
+
+    // 设备
     private LocalDevice mRendererDevice;
 
     @Override
@@ -72,10 +79,14 @@ public class DLNARendererService extends AndroidUpnpServiceImpl {
         org.seamless.util.logging.LoggingUtil.resetRootHandler(new FixedAndroidLogHandler());
         super.onCreate();
         String ipAddress = DeviceWiFiInfo.getWiFiInfoIPAddress(getApplicationContext());
+        // 添加音频控制器
         mRenderControlManager.addControl(new AudioRenderController(getApplicationContext()));
+        // 添加视频控制器
         mRenderControlManager.addControl(new AVTransportController(getApplicationContext(), new IDLNARenderControl.DefaultRenderControl()));
         try {
+            // 创建一个本地渲染设备
             mRendererDevice = createRendererDevice(getApplicationContext(), ipAddress);
+            // 把渲染设备注册到 UPNPService 中
             upnpService.getRegistry().addDevice(mRendererDevice);
         } catch (Exception e) {
             e.printStackTrace();
@@ -121,6 +132,7 @@ public class DLNARendererService extends AndroidUpnpServiceImpl {
     public final static String TYPE_MEDIA_PLAYER = "MediaRenderer";
     private final static int VERSION = 1;
 
+    // 创建渲染设备
     protected LocalDevice createRendererDevice(Context context, String ipAddress) throws ValidationException, IOException {
         DeviceIdentity deviceIdentity = new DeviceIdentity(createUniqueSystemIdentifier(ID_SALT, ipAddress));
         UDADeviceType deviceType = new UDADeviceType(TYPE_MEDIA_PLAYER, VERSION);
@@ -139,6 +151,7 @@ public class DLNARendererService extends AndroidUpnpServiceImpl {
         return new LocalDevice(deviceIdentity, deviceType, details, icons, generateLocalServices());
     }
 
+    // 创建本地设备支持的服务
     @SuppressWarnings("unchecked")
     protected LocalService<?>[] generateLocalServices() {
 

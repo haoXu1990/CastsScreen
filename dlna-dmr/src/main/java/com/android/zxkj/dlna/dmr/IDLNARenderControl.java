@@ -29,9 +29,6 @@ public interface IDLNARenderControl {
 
         private final StandardGSYVideoPlayer videoView;
         private static final String TAG = "VideoViewRenderControl";
-
-        private final Handler mHandler = new Handler(Looper.getMainLooper());
-
         public VideoViewRenderControl(StandardGSYVideoPlayer videoView) {
             this.videoView = videoView;
         }
