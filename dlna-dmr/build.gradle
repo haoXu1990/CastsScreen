@@ -12,6 +12,10 @@ android {
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
+
+        ndk {
+            abiFilters 'armeabi-v7a', 'x86', 'x86_64', 'armeabi'
+        }
     }
 
     buildTypes {
@@ -44,7 +48,12 @@ dependencies {
     implementation 'tv.danmaku.ijk.media:ijkplayer-java:0.8.8'
     implementation 'tv.danmaku.ijk.media:ijkplayer-armv7a:0.8.8'
 
-    implementation 'com.github.CarGuo.GSYVideoPlayer:GSYVideoPlayer:v8.3.0-release-jitpack'
+    implementation 'tv.danmaku.ijk.media:ijkplayer-armv5:0.8.8'
+    implementation 'tv.danmaku.ijk.media:ijkplayer-arm64:0.8.8'
+    implementation 'tv.danmaku.ijk.media:ijkplayer-x86:0.8.8'
+    implementation 'tv.danmaku.ijk.media:ijkplayer-x86_64:0.8.8'
+
+//    implementation 'com.github.CarGuo.GSYVideoPlayer:GSYVideoPlayer:v8.3.0-release-jitpack'
 
 //    implementation 'com.google.android.exoplayer:exoplayer:2.13.1'
 

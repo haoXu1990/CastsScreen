@@ -21,15 +21,17 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.android.zxkj.dlna.dmr.media.ZxineVideoListener;
+import com.android.zxkj.dlna.dmr.media.ZxineVideoView;
 import com.android.zxkj.dlna.dmr.widget.MyImageView;
-import com.google.android.exoplayer2.ExoPlaybackException;
-import com.google.android.exoplayer2.ExoPlayer;
-import com.google.android.exoplayer2.MediaItem;
-import com.google.android.exoplayer2.Player;
-import com.google.android.exoplayer2.SimpleExoPlayer;
-import com.google.android.exoplayer2.ui.PlayerView;
-import com.shuyu.gsyvideoplayer.listener.VideoAllCallBack;
-import com.shuyu.gsyvideoplayer.video.StandardGSYVideoPlayer;
+//import com.google.android.exoplayer2.ExoPlaybackException;
+//import com.google.android.exoplayer2.ExoPlayer;
+//import com.google.android.exoplayer2.MediaItem;
+//import com.google.android.exoplayer2.Player;
+//import com.google.android.exoplayer2.SimpleExoPlayer;
+//import com.google.android.exoplayer2.ui.PlayerView;
+//import com.shuyu.gsyvideoplayer.listener.VideoAllCallBack;
+//import com.shuyu.gsyvideoplayer.video.StandardGSYVideoPlayer;
 
 import org.fourthline.cling.model.types.UnsignedIntegerFourBytes;
 import org.fourthline.cling.support.avtransport.lastchange.AVTransportVariable;
@@ -43,6 +45,8 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+
+import tv.danmaku.ijk.media.player.IMediaPlayer;
 
 public class DLNARenderActivity extends AppCompatActivity {
     private static final String KEY_EXTRA_CURRENT_URI = "Renderer.KeyExtra.CurrentUri";
@@ -62,8 +66,17 @@ public class DLNARenderActivity extends AppCompatActivity {
     private ProgressBar mProgressBar;
     private DLNARendererService mRendererService;
 
-    private StandardGSYVideoPlayer mVideoView;
+    private ZxineVideoView mVideoView;
+
+//    private StandardGSYVideoPlayer mVideoView;
     private MyImageView mImageView;
+
+    private final ZxineVideoListener mZxineVideoListener = new ZxineVideoListener() {
+        @Override
+        public void onPrepared(IMediaPlayer iMediaPlayer) {
+            mVideoView.start();
+        }
+    };
 
 //    private final Player.EventListener mPlayerListenner = new Player.EventListener() {
 //        @Override
@@ -123,131 +136,138 @@ public class DLNARenderActivity extends AppCompatActivity {
 
         mImageView = findViewById(R.id.image_view);
         mImageView.setVisibility(View.INVISIBLE);
+
         mVideoView = findViewById(R.id.video_view);
-        mVideoView.getBackButton().setVisibility(View.VISIBLE);
-        mVideoView.setVideoAllCallBack(new VideoAllCallBack() {
-            @Override
-            public void onStartPrepared(String url, Object... objects) {
-                Log.d(TAG, "EXOPlayer start play");
-                    mProgressBar.setVisibility(View.INVISIBLE);
-                    // 设置播放状态
-                    notifyTransportStateChanged(TransportState.PLAYING);
-            }
-
-            @Override
-            public void onPrepared(String url, Object... objects) {
-
-            }
-
-            @Override
-            public void onClickStartIcon(String url, Object... objects) {
-            }
-
-            @Override
-            public void onClickStartError(String url, Object... objects) {
-
-            }
-
-
-            @Override
-            public void onClickStop(String url, Object... objects) {
-
-            }
-
-            @Override
-            public void onClickStopFullscreen(String url, Object... objects) {
-
-            }
-
-            @Override
-            public void onClickResume(String url, Object... objects) {
-
-            }
-
-            @Override
-            public void onClickResumeFullscreen(String url, Object... objects) {
-
-            }
-
-            @Override
-            public void onClickSeekbar(String url, Object... objects) {
-
-            }
-
-            @Override
-            public void onClickSeekbarFullscreen(String url, Object... objects) {
-
-            }
-
-            @Override
-            public void onAutoComplete(String url, Object... objects) {
-
-            }
-
-            @Override
-            public void onComplete(String url, Object... objects) {
-
-            }
-
-            @Override
-            public void onEnterFullscreen(String url, Object... objects) {
-
-            }
-
-            @Override
-            public void onQuitFullscreen(String url, Object... objects) {
-
-            }
-
-            @Override
-            public void onQuitSmallWidget(String url, Object... objects) {
-
-            }
-
-            @Override
-            public void onEnterSmallWidget(String url, Object... objects) {
-
-            }
-
-            @Override
-            public void onTouchScreenSeekVolume(String url, Object... objects) {
-
-            }
-
-            @Override
-            public void onTouchScreenSeekPosition(String url, Object... objects) {
-
-            }
-
-            @Override
-            public void onTouchScreenSeekLight(String url, Object... objects) {
-
-            }
-
-            @Override
-            public void onPlayError(String url, Object... objects) {
-
-            }
-
-            @Override
-            public void onClickStartThumb(String url, Object... objects) {
-
-            }
-
-            @Override
-            public void onClickBlank(String url, Object... objects) {
-
-            }
-
-            @Override
-            public void onClickBlankFullscreen(String url, Object... objects) {
-
-            }
-        });
+        mVideoView.setVideoListener(mZxineVideoListener);
+        // 不开启硬解码
+        mVideoView.setEnableMediaCodec(false);
 
         mProgressBar = findViewById(R.id.video_progress);
         bindService(new Intent(this, DLNARendererService.class), mServiceConnection, Service.BIND_AUTO_CREATE);
         openMedia(getIntent());
+    }
+
+    void initGSYVideo() {
+//        mVideoView.getBackButton().setVisibility(View.VISIBLE);
+//        mVideoView.setVideoAllCallBack(new VideoAllCallBack() {
+//            @Override
+//            public void onStartPrepared(String url, Object... objects) {
+//                Log.d(TAG, "EXOPlayer start play");
+//                mProgressBar.setVisibility(View.INVISIBLE);
+//                // 设置播放状态
+//                notifyTransportStateChanged(TransportState.PLAYING);
+//            }
+//
+//            @Override
+//            public void onPrepared(String url, Object... objects) {
+//
+//            }
+//
+//            @Override
+//            public void onClickStartIcon(String url, Object... objects) {
+//            }
+//
+//            @Override
+//            public void onClickStartError(String url, Object... objects) {
+//
+//            }
+//
+//
+//            @Override
+//            public void onClickStop(String url, Object... objects) {
+//
+//            }
+//
+//            @Override
+//            public void onClickStopFullscreen(String url, Object... objects) {
+//
+//            }
+//
+//            @Override
+//            public void onClickResume(String url, Object... objects) {
+//
+//            }
+//
+//            @Override
+//            public void onClickResumeFullscreen(String url, Object... objects) {
+//
+//            }
+//
+//            @Override
+//            public void onClickSeekbar(String url, Object... objects) {
+//
+//            }
+//
+//            @Override
+//            public void onClickSeekbarFullscreen(String url, Object... objects) {
+//
+//            }
+//
+//            @Override
+//            public void onAutoComplete(String url, Object... objects) {
+//
+//            }
+//
+//            @Override
+//            public void onComplete(String url, Object... objects) {
+//
+//            }
+//
+//            @Override
+//            public void onEnterFullscreen(String url, Object... objects) {
+//
+//            }
+//
+//            @Override
+//            public void onQuitFullscreen(String url, Object... objects) {
+//
+//            }
+//
+//            @Override
+//            public void onQuitSmallWidget(String url, Object... objects) {
+//
+//            }
+//
+//            @Override
+//            public void onEnterSmallWidget(String url, Object... objects) {
+//
+//            }
+//
+//            @Override
+//            public void onTouchScreenSeekVolume(String url, Object... objects) {
+//
+//            }
+//
+//            @Override
+//            public void onTouchScreenSeekPosition(String url, Object... objects) {
+//
+//            }
+//
+//            @Override
+//            public void onTouchScreenSeekLight(String url, Object... objects) {
+//
+//            }
+//
+//            @Override
+//            public void onPlayError(String url, Object... objects) {
+//
+//            }
+//
+//            @Override
+//            public void onClickStartThumb(String url, Object... objects) {
+//
+//            }
+//
+//            @Override
+//            public void onClickBlank(String url, Object... objects) {
+//
+//            }
+//
+//            @Override
+//            public void onClickBlankFullscreen(String url, Object... objects) {
+//
+//            }
+//        });
     }
 
     @Override
@@ -273,8 +293,16 @@ public class DLNARenderActivity extends AppCompatActivity {
                 Log.d(TAG, "open Media Uir: "+ currentUri);
                 mImageView.setVisibility(View.INVISIBLE);
                 mVideoView.setVisibility(View.VISIBLE);
-                mVideoView.setUp(currentUri,false,"");
-                mVideoView.startPlayLogic();
+
+                mVideoView.setPath(currentUri);
+                try {
+                    mVideoView.load();
+                } catch (IOException e) {
+                    Toast.makeText(this, "播放失败", Toast.LENGTH_SHORT).show();
+                    e.printStackTrace();
+                }
+//                mVideoView.setUp(currentUri,false,"");
+//                mVideoView.startPlayLogic();
             }
 
             // 设置媒体信息
@@ -306,11 +334,11 @@ public class DLNARenderActivity extends AppCompatActivity {
                 int volume = ((AudioManager) getApplication().getSystemService(Context.AUDIO_SERVICE)).getStreamVolume(AudioManager.STREAM_MUSIC);
                 notifyRenderVolumeChanged(volume);
             } else if (keyCode == KeyEvent.KEYCODE_ENTER || keyCode == KeyEvent.KEYCODE_DPAD_CENTER) {
-                if (mVideoView != null && mVideoView.isInPlayingState()) {
-                    mVideoView.onVideoPause();
+                if (mVideoView != null && mVideoView.isPlaying()) {
+                    mVideoView.pause();
                     notifyTransportStateChanged(TransportState.PAUSED_PLAYBACK);
                 } else if (mVideoView != null) {
-                    mVideoView.onVideoResume();
+                    mVideoView.start();
                     notifyTransportStateChanged(TransportState.PLAYING);
                 }
             }

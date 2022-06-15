@@ -30,19 +30,18 @@ public class ZxineVideoView extends FrameLayout {
     private SurfaceView mSurfaceView;
 
     private Context mContext;
-    private boolean mEnableMediaCodec;
+    private boolean mEnableMediaCodec = false;
+    private ZxineVideoListener mListener;
 
     IMediaPlayer.OnPreparedListener mPreparedListener = new IMediaPlayer.OnPreparedListener() {
         public void onPrepared(IMediaPlayer mp) {
-
+            mListener.onPrepared(mp);
         }
     };
 
     IMediaPlayer.OnVideoSizeChangedListener mSizeChangedListener =
-            new IMediaPlayer.OnVideoSizeChangedListener() {
-                public void onVideoSizeChanged(IMediaPlayer mp, int width, int height, int sarNum, int sarDen) {
+            (mp, width, height, sarNum, sarDen) -> {
 
-                }
             };
 
     public ZxineVideoView(@NonNull Context context) {
@@ -67,14 +66,13 @@ public class ZxineVideoView extends FrameLayout {
         mSurfaceView.getHolder().addCallback(new SurfaceHolder.Callback() {
             @Override
             public void surfaceCreated(SurfaceHolder surfaceHolder) {
-
+                if (mMediaPlayer != null) {
+                    mMediaPlayer.setDisplay(surfaceHolder);
+                }
             }
 
             @Override
             public void surfaceChanged(SurfaceHolder surfaceHolder, int i, int i1, int i2) {
-                if (mMediaPlayer != null) {
-                    mMediaPlayer.setDisplay(surfaceHolder);
-                }
             }
 
             @Override
@@ -90,17 +88,24 @@ public class ZxineVideoView extends FrameLayout {
     //创建一个新的player
     private IMediaPlayer createPlayer() {
         IjkMediaPlayer ijkMediaPlayer = new IjkMediaPlayer();
-        ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "opensles", 1);
+        // 设置 Option 会崩溃, 不知道原因, 感觉是线程问题
+        // A/libc: Fatal signal 11 (SIGSEGV), code 2 (SEGV_ACCERR), fault addr 0x7150e86b10 in tid 16752 (Thread-4), pid 16499 (d.zxkj.renderer)
+//        ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "opensles", 1);
+//
+//        ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "overlay-format", IjkMediaPlayer.SDL_FCC_RV32);
+//        ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "framedrop", 1);
+//        ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "start-on-prepared", 0);
+//
+//        ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "http-detect-range-support", 1);
+//
+        // 环路过滤 0 开启 画面质量高， 解码开销高
+        // 48关闭 画面质量差， 解码开销小
+//        ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_CODEC, "skip_loop_filter", 48);
+//        ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_CODEC, "min-frames", 100);
 
-        ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "overlay-format", IjkMediaPlayer.SDL_FCC_RV32);
-        ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "framedrop", 1);
-        ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "start-on-prepared", 0);
-
-        ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "http-detect-range-support", 1);
-
-        ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_CODEC, "skip_loop_filter", 48);
-        ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_CODEC, "min-frames", 100);
-        ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "enable-accurate-seek", 1);
+        // seek 优化
+        // 有些视频在 seekto 的时候会出现画面回跳，这是关键帧的问题，seek 只支持关键帧，出现这种情况是原始视频中的 i 帧比较少
+//        ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "enable-accurate-seek", 1);
 
         ijkMediaPlayer.setVolume(1.0f, 1.0f);
 
@@ -129,9 +134,9 @@ public class ZxineVideoView extends FrameLayout {
     /**
      * 设置自己的player回调
      */
-//    public void setVideoListener(VideoListener listener){
-//        mListener = listener;
-//    }
+    public void setVideoListener(ZxineVideoListener listener){
+        mListener = listener;
+    }
 
     //设置播放地址
     public void setPath(String path) {

@@ -1,13 +1,14 @@
 package com.android.zxkj.dlna.dmr;
 
-import android.os.Handler;
-import android.os.Looper;
+//import android.os.Handler;
+//import android.os.Looper;
 import android.util.Log;
 
-import com.google.android.exoplayer2.ExoPlayer;
-import com.shuyu.gsyvideoplayer.GSYVideoADManager;
-import com.shuyu.gsyvideoplayer.GSYVideoManager;
-import com.shuyu.gsyvideoplayer.video.StandardGSYVideoPlayer;
+import com.android.zxkj.dlna.dmr.media.ZxineVideoView;
+//import com.google.android.exoplayer2.ExoPlayer;
+//import com.shuyu.gsyvideoplayer.GSYVideoADManager;
+//import com.shuyu.gsyvideoplayer.GSYVideoManager;
+//import com.shuyu.gsyvideoplayer.video.StandardGSYVideoPlayer;
 
 public interface IDLNARenderControl {
     void play();
@@ -27,21 +28,21 @@ public interface IDLNARenderControl {
     // -------------------------------------------------------------------------------------------
     final class VideoViewRenderControl implements IDLNARenderControl {
 
-        private final StandardGSYVideoPlayer videoView;
+        private final ZxineVideoView videoView;
         private static final String TAG = "VideoViewRenderControl";
-        public VideoViewRenderControl(StandardGSYVideoPlayer videoView) {
+        public VideoViewRenderControl(ZxineVideoView videoView) {
             this.videoView = videoView;
         }
 
         @Override
         public void play() {
-            videoView.onVideoResume();
+            videoView.start();
         }
 
         @Override
         public void pause() {
             Log.d("TAG", "pause: ");
-            videoView.onVideoPause();
+            videoView.pause();
         }
 
         @Override
@@ -51,13 +52,12 @@ public interface IDLNARenderControl {
 
         @Override
         public void stop() {
-            videoView.onVideoReset();
+            videoView.stop();
         }
 
         @Override
         public long getPosition() {
-            Log.d(TAG, "getPosition: " + videoView.getCurrentPositionWhenPlaying());
-            return videoView.getCurrentPositionWhenPlaying();
+            return videoView.getCurrentPosition();
         }
 
         @Override
