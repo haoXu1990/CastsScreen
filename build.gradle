@@ -9,11 +9,15 @@ buildscript {
         maven { url 'https://maven.aliyun.com/repository/jcenter' }
         mavenCentral()
         mavenLocal()
-        maven { url 'http://4thline.org/m2' }
+        maven {
+            url 'http://4thline.org/m2'
+            allowInsecureProtocol = true
+        }
+
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:4.1.2'
+        classpath 'com.android.tools.build:gradle:4.2.1'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
@@ -27,7 +31,12 @@ allprojects {
         maven { url 'https://maven.aliyun.com/repository/jcenter' }
         mavenCentral()
         mavenLocal()
-        maven { url 'http://4thline.org/m2' }
+        maven {
+            url 'http://4thline.org/m2'
+            allowInsecureProtocol = true
+        }
+        maven { url 'https://jitpack.io' }
+        maven { url "https://maven.aliyun.com/repository/public" }
     }
 }
 

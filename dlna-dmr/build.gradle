@@ -4,7 +4,7 @@ plugins {
 
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
-    buildToolsVersion rootProject.ext.buildToolsVersion
+//    buildToolsVersion rootProject.ext.buildToolsVersion
 
     defaultConfig {
         minSdkVersion rootProject.ext.minSdkVersion
@@ -41,7 +41,9 @@ dependencies {
     //noinspection GradleDependency
     api 'org.eclipse.jetty:jetty-client:8.1.21.v20160908'
 
-    implementation 'com.google.android.exoplayer:exoplayer:2.13.1'
+    implementation 'com.github.CarGuo.GSYVideoPlayer:GSYVideoPlayer:v8.3.0-release-jitpack'
+
+//    implementation 'com.google.android.exoplayer:exoplayer:2.13.1'
 
     api(project(':dlna-core'))
 

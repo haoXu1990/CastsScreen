@@ -5,6 +5,9 @@ import android.os.Looper;
 import android.util.Log;
 
 import com.google.android.exoplayer2.ExoPlayer;
+import com.shuyu.gsyvideoplayer.GSYVideoADManager;
+import com.shuyu.gsyvideoplayer.GSYVideoManager;
+import com.shuyu.gsyvideoplayer.video.StandardGSYVideoPlayer;
 
 public interface IDLNARenderControl {
     void play();
@@ -24,22 +27,24 @@ public interface IDLNARenderControl {
     // -------------------------------------------------------------------------------------------
     final class VideoViewRenderControl implements IDLNARenderControl {
 
-        private final ExoPlayer videoView;
+        private final StandardGSYVideoPlayer videoView;
+        private static final String TAG = "VideoViewRenderControl";
 
         private final Handler mHandler = new Handler(Looper.getMainLooper());
 
-        public VideoViewRenderControl(ExoPlayer videoView) {
+        public VideoViewRenderControl(StandardGSYVideoPlayer videoView) {
             this.videoView = videoView;
         }
 
         @Override
         public void play() {
-            videoView.play();
+            videoView.onVideoResume();
         }
 
         @Override
         public void pause() {
-            videoView.pause();
+            Log.d("TAG", "pause: ");
+            videoView.onVideoPause();
         }
 
         @Override
@@ -49,16 +54,18 @@ public interface IDLNARenderControl {
 
         @Override
         public void stop() {
-            videoView.stop();
+            videoView.onVideoReset();
         }
 
         @Override
         public long getPosition() {
-            return videoView.getCurrentPosition();
+            Log.d(TAG, "getPosition: " + videoView.getCurrentPositionWhenPlaying());
+            return videoView.getCurrentPositionWhenPlaying();
         }
 
         @Override
         public long getDuration() {
+            Log.d(TAG, "getDuration: " + videoView.getDuration());
             return videoView.getDuration();
         }
     }

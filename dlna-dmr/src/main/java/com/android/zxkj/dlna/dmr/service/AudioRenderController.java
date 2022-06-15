@@ -2,11 +2,13 @@ package com.android.zxkj.dlna.dmr.service;
 
 import android.content.Context;
 import android.media.AudioManager;
+import android.util.Log;
 
 import org.fourthline.cling.model.types.UnsignedIntegerFourBytes;
 import org.fourthline.cling.model.types.UnsignedIntegerTwoBytes;
 
 public class AudioRenderController implements IRendererInterface.IAudioControl {
+    private static final String TAG = "AudioRenderController";
     private static final UnsignedIntegerTwoBytes VOLUME_MUTE = new UnsignedIntegerTwoBytes(0);
     private final UnsignedIntegerFourBytes mInstanceId;
     private final AudioManager mAudioManager;
@@ -22,6 +24,7 @@ public class AudioRenderController implements IRendererInterface.IAudioControl {
         mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
         final int MAX_MUSIC = mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
         final int volume = mAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+        Log.d(TAG, "MAX_MUSIC: " + MAX_MUSIC + "  CurrentVolume: " + volume);
         mCurrentVolume = new UnsignedIntegerTwoBytes(volume * 100 / MAX_MUSIC);
         mLastVolume = new UnsignedIntegerTwoBytes(volume * 100 / MAX_MUSIC);
     }
@@ -53,6 +56,7 @@ public class AudioRenderController implements IRendererInterface.IAudioControl {
 
     @Override
     public UnsignedIntegerTwoBytes getVolume(String channelName) {
+        Log.d(TAG, "getVolume: " + mCurrentVolume);
         return mCurrentVolume;
     }
 }

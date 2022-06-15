@@ -16,6 +16,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        setSupportActionBar(findViewById(R.id.toolbar));
         PermissionX.init(this)
                 .permissions(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION)
                 .request((allGranted, grantedList, deniedList) -> resetWifiInfo());
@@ -23,6 +24,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void resetWifiInfo() {
-        ((TextView) findViewById(R.id.network_info)).setText(DeviceWiFiInfo.getWiFiInfoSSID(this));
+        getSupportActionBar().setTitle("DLNA Renderer");
+        getSupportActionBar().setSubtitle("WiFi: " + DeviceWiFiInfo.getWiFiInfoSSID(this));
     }
+
+
 }

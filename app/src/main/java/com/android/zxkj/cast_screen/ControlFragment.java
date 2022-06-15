@@ -11,6 +11,7 @@ import androidx.fragment.app.Fragment;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,6 +29,7 @@ import org.fourthline.cling.model.meta.Device;
 public class ControlFragment extends Fragment implements IDisplayDevice, CastFragment.Callback  {
 
 
+    private static final String TAG = "ControlFragment";
     private TextView mPositionInfo;
     private SeekBar mPositionSeekBar;
     private TextView mVolumeInfo;
@@ -192,6 +194,7 @@ public class ControlFragment extends Fragment implements IDisplayDevice, CastFra
       if (mDevice == null) return;
       DLNACastManager.getInstance().getPositionInfo(mDevice, ((positionInfo, errMsg) -> {
           if (positionInfo != null) {
+              Log.d(TAG, positionInfo.toString());
               mPositionInfo.setText(String.format("%s/%s", positionInfo.getRelTime(), positionInfo.getTrackDuration()));
               if (positionInfo.getTrackDurationSeconds() != 0) {
                   mDurationMillSeconds = positionInfo.getTrackDurationSeconds() * 1000;
@@ -208,6 +211,7 @@ public class ControlFragment extends Fragment implements IDisplayDevice, CastFra
         if (mDevice == null) return;
         DLNACastManager.getInstance().getVolumeInfo(mDevice, ((integer, errMsg) -> {
             if (integer != null && getActivity() != null) {
+                Log.d(TAG, "getVolumeInfo: " + integer);
                 AudioManager audioManager = (AudioManager) getActivity().getSystemService(Context.AUDIO_SERVICE);
                 int maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
                 mVolumeSeekBar.setProgress(integer);

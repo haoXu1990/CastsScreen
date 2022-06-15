@@ -136,7 +136,6 @@ abstract class QueryRequest<T> {
 
         @Override
         protected ActionCallback getAction() {
-            Log.d("QueryRequest", String.valueOf(new Exception()));
             return getService() != null ?
                     new GetPositionInfo(getService()) {
                         @Override
