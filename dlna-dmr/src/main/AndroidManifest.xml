@@ -5,6 +5,7 @@
     <application>
 
         <activity
+            android:hardwareAccelerated="true"
             android:name=".DLNARenderActivity"
             android:configChanges="keyboard|screenSize"
             android:launchMode="singleTop" />

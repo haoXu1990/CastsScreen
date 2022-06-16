@@ -2,6 +2,7 @@ package com.android.zxkj.dlna.dmr;
 
 //import android.os.Handler;
 //import android.os.Looper;
+import android.media.MediaPlayer;
 import android.util.Log;
 
 import com.android.zxkj.dlna.dmr.media.ZxineVideoView;
@@ -28,9 +29,9 @@ public interface IDLNARenderControl {
     // -------------------------------------------------------------------------------------------
     final class VideoViewRenderControl implements IDLNARenderControl {
 
-        private final ZxineVideoView videoView;
+        private final MediaPlayer videoView;
         private static final String TAG = "VideoViewRenderControl";
-        public VideoViewRenderControl(ZxineVideoView videoView) {
+        public VideoViewRenderControl(MediaPlayer videoView) {
             this.videoView = videoView;
         }
 
