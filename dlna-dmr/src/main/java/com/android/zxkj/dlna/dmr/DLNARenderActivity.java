@@ -68,6 +68,8 @@ public class DLNARenderActivity extends AppCompatActivity {
                 case ExoPlayer.STATE_IDLE: //播放器已实例化，但尚未准备就绪。
                     break;
                 case ExoPlayer.STATE_READY: //播放器可以立即从当前位置开始播放
+                    // 播放
+                    mPlayer.play();
                     Log.d(TAG, "EXOPlayer start play");
                     mProgressBar.setVisibility(View.INVISIBLE);
                     notifyTransportStateChanged(TransportState.PLAYING);
@@ -109,6 +111,8 @@ public class DLNARenderActivity extends AppCompatActivity {
         mVideoView = findViewById(R.id.video_view);
 
         mPlayer = new SimpleExoPlayer.Builder(this).setLooper(Looper.getMainLooper()).build();
+        mPlayer.setThrowsWhenUsingWrongThread(false);
+
         mPlayer.addListener(mPlayerListenner);
         mVideoView.setPlayer(mPlayer);
 
@@ -133,8 +137,6 @@ public class DLNARenderActivity extends AppCompatActivity {
             mPlayer.setMediaItem(mediaItem);
             // 准备播放
             mPlayer.prepare();
-            // 播放
-            mPlayer.play();
         } else {
             Toast.makeText(this, "没有找到有效的视频地址，请检查...", Toast.LENGTH_SHORT).show();
             finish();
