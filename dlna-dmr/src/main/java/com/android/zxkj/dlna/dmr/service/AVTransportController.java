@@ -6,6 +6,7 @@ import com.android.zxkj.dlna.core.utils.CastUtils;
 import com.android.zxkj.dlna.dmr.DLNARenderActivity;
 import com.android.zxkj.dlna.dmr.IDLNARenderControl;
 
+import org.fourthline.cling.model.ModelUtil;
 import org.fourthline.cling.model.types.ErrorCode;
 import org.fourthline.cling.model.types.UnsignedIntegerFourBytes;
 import org.fourthline.cling.support.avtransport.AVTransportErrorCode;
@@ -72,7 +73,9 @@ public class AVTransportController implements IRendererInterface.IAVTransportCon
 
     @Override
     public PositionInfo getPositionInfo() {
-        return new PositionInfo(mOriginPositionInfo, mMediaControl.getPosition() / 1000, mMediaControl.getDuration() / 1000);
+        final PositionInfo positionInfo = new PositionInfo(mOriginPositionInfo, mMediaControl.getPosition() / 1000, mMediaControl.getDuration()/ 1000 );
+        positionInfo.setTrackDuration(ModelUtil.toTimeString( mMediaControl.getDuration() / 1000) );
+        return positionInfo;
     }
 
     @Override
