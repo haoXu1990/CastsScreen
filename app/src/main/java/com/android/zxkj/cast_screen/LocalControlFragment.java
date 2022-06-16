@@ -93,34 +93,16 @@ public class LocalControlFragment extends Fragment implements IDisplayDevice {
         mPickupContent = view.findViewById(R.id.local_ctrl_pick_content_text);
         mPickupContent.setText(selectPath);
         mCastPathUrl = selectPath;
-        view.findViewById(R.id.local_ctrl_pick_content).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-                intent.setType("video/*;audio/*;image/*");
-                startActivityForResult(intent, REQUEST_CODE_SELECT);
-            }
+        view.findViewById(R.id.local_ctrl_pick_content).setOnClickListener(view12 -> {
+            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+            intent.setType("video/*;audio/*;image/*");
+            startActivityForResult(intent, REQUEST_CODE_SELECT);
         });
-        view.findViewById(R.id.local_ctrl_cast).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (mDevice != null) {
-                    DLNACastManager.getInstance().cast(mDevice,
-                            CastObject.newInstance(mCastPathUrl, Constants.CAST_ID, Constants.CAST_NAME));
+        view.findViewById(R.id.local_ctrl_cast).setOnClickListener(view1 -> {
+            if (mDevice != null) {
+                DLNACastManager.getInstance().cast(mDevice,
+                        CastObject.newInstance(mCastPathUrl, Constants.CAST_ID, Constants.CAST_NAME));
 
-//                    String[] array = mCastPathUrl.split(":");
-//                    if (array.length > 1) {
-//                        String last = array[1];
-//                        if (last.equals("jpg")  || last.equals("png")) {
-//
-//
-//                        }else {
-//                            DLNACastManager.getInstance().cast(mDevice,
-//                                    CastObject.CastVideo.newInstance(mCastPathUrl, Constants.CAST_ID, Constants.CAST_NAME));
-//                        }
-//                    }
-
-                }
             }
         });
     }

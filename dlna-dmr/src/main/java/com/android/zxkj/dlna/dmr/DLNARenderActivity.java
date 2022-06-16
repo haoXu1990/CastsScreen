@@ -5,20 +5,15 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.os.Looper;
 import android.util.Log;
 import android.view.KeyEvent;
-import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
@@ -26,17 +21,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.android.zxkj.dlna.dmr.media.ZxineVideoListener;
-import com.android.zxkj.dlna.dmr.media.ZxineVideoView;
 import com.android.zxkj.dlna.dmr.widget.MyImageView;
-//import com.google.android.exoplayer2.ExoPlaybackException;
-//import com.google.android.exoplayer2.ExoPlayer;
-//import com.google.android.exoplayer2.MediaItem;
-//import com.google.android.exoplayer2.Player;
-//import com.google.android.exoplayer2.SimpleExoPlayer;
-//import com.google.android.exoplayer2.ui.PlayerView;
-//import com.shuyu.gsyvideoplayer.listener.VideoAllCallBack;
-//import com.shuyu.gsyvideoplayer.video.StandardGSYVideoPlayer;
 
 import org.fourthline.cling.model.types.UnsignedIntegerFourBytes;
 import org.fourthline.cling.support.avtransport.lastchange.AVTransportVariable;
@@ -45,22 +30,14 @@ import org.fourthline.cling.support.model.TransportState;
 import org.fourthline.cling.support.renderingcontrol.lastchange.ChannelVolume;
 import org.fourthline.cling.support.renderingcontrol.lastchange.RenderingControlVariable;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-
-import tv.danmaku.ijk.media.player.IMediaPlayer;
 
 public class DLNARenderActivity extends AppCompatActivity implements SurfaceHolder.Callback, MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener {
     private static final String KEY_EXTRA_CURRENT_URI = "Renderer.KeyExtra.CurrentUri";
     private static final String TAG = "DLNARenderActivity";
     public static void startActivity(Context context, String currentURI) {
-//        Log.i(TAG, "startActivity", new Exception());
         Intent intent = new Intent(context, DLNARenderActivity.class);
         intent.putExtra(KEY_EXTRA_CURRENT_URI, currentURI);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); // start from service content,should add 'FLAG_ACTIVITY_NEW_TASK' flag.
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         context.startActivity(intent);
     }
 
@@ -69,47 +46,59 @@ public class DLNARenderActivity extends AppCompatActivity implements SurfaceHold
     private ProgressBar mProgressBar;
     private DLNARendererService mRendererService;
 
-    private MediaPlayer mVideoView;
-
     private MyImageView mImageView;
 
+    private MediaPlayer mVideoView;
     private SurfaceView mSurfaceView;
     private SurfaceHolder mSurfaceHolder;
 
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
+            Toast.makeText(getApplicationContext(), "服务连接成功", Toast.LENGTH_LONG).show();
             mRendererService = ((DLNARendererService.RendererServiceBinder) service).getRendererService();
+
             mRendererService.setRenderControl(new IDLNARenderControl.VideoViewRenderControl(mVideoView));
         }
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
             mRendererService = null;
+            Toast.makeText(getApplicationContext(), "服务断开连接", Toast.LENGTH_LONG).show();
+//            finish();
         }
     };
+
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dlna_renderer);
 
+        initComponent();
+
+        openMedia(getIntent());
+    }
+
+    private void initComponent() {
+        // 图片
         mImageView = findViewById(R.id.image_view);
         mImageView.setVisibility(View.INVISIBLE);
 
+        // 音视频
         mVideoView = new MediaPlayer();
         mVideoView.setAudioStreamType(AudioManager.STREAM_MUSIC);
         mVideoView.setOnPreparedListener(this);
         mVideoView.setOnCompletionListener(this);
 
+        // MediaPlayer 需要的 SurfaceView
         mSurfaceView = findViewById(R.id.video_view);
         mSurfaceHolder = mSurfaceView.getHolder();
         mSurfaceHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
         mSurfaceHolder.addCallback(this);
 
+        // loading HUD
         mProgressBar = findViewById(R.id.video_progress);
-        bindService(new Intent(this, DLNARendererService.class), mServiceConnection, Service.BIND_AUTO_CREATE);
-        openMedia(getIntent());
     }
 
     @Override
@@ -124,16 +113,21 @@ public class DLNARenderActivity extends AppCompatActivity implements SurfaceHold
             mProgressBar.setVisibility(View.VISIBLE);
             String currentUri = bundle.getString(KEY_EXTRA_CURRENT_URI);
             Log.d(TAG, "open Media Uir: "+ currentUri);
-            // 这个根据Uri 来判断播放音视频，还是播放图片
-            if (currentUri.endsWith(".png") || currentUri.endsWith(".jpg")) {
-                Log.d(TAG, "open Media Uir: "+ currentUri);
 
+            // 这个根据Uri 来判断播放音视频，还是播放图片
+            // 投屏的时候目前使用的是AVTransport
+            if (currentUri.endsWith(".png") || currentUri.endsWith(".jpg")) {
+                Log.d(TAG, "open Image Media Uir: "+ currentUri);
                 mImageView.setVisibility(View.VISIBLE);
                 mProgressBar.setVisibility(View.INVISIBLE);
+                mSurfaceView.setVisibility(View.GONE);
                 mImageView.setImageURL(currentUri);
             } else {
-                Log.d(TAG, "open Media Uir: "+ currentUri);
+                Log.d(TAG, "open Video Media Uir: "+ currentUri);
+                // 绑定 RendererService , 放在这里是应为 目前的投屏都是 AVTransport, 如是投屏的图片的话，一直接获取播放信息就要报错，
+                bindService(new Intent(this, DLNARendererService.class), mServiceConnection, Service.BIND_AUTO_CREATE);
                 mImageView.setVisibility(View.INVISIBLE);
+                mSurfaceView.setVisibility(View.VISIBLE);
                 try {
                     mVideoView.setDataSource(currentUri);
                     mVideoView.prepare();
@@ -149,10 +143,12 @@ public class DLNARenderActivity extends AppCompatActivity implements SurfaceHold
 
     @Override
     protected void onDestroy() {
-        if (mVideoView != null && mVideoView.isPlaying()) {
+        if (mVideoView != null) {
             mVideoView.stop();
             mVideoView.release();
             mVideoView = null;
+            mSurfaceHolder = null;
+            mSurfaceView = null;
         }
 
         notifyTransportStateChanged(TransportState.STOPPED);
@@ -180,6 +176,7 @@ public class DLNARenderActivity extends AppCompatActivity implements SurfaceHold
         return handled;
     }
 
+    // DMR notify,  有问题，DMC 端无法目前没有收到信息
     private void notifyTransportStateChanged(TransportState transportState) {
         if (mRendererService != null) {
             mRendererService.getAvTransportLastChange()
@@ -194,6 +191,8 @@ public class DLNARenderActivity extends AppCompatActivity implements SurfaceHold
         }
     }
 
+
+    // SurfaceHolder Listener
     @Override
     public void surfaceCreated(@NonNull SurfaceHolder surfaceHolder) {
         mVideoView.setDisplay(surfaceHolder);
@@ -210,9 +209,10 @@ public class DLNARenderActivity extends AppCompatActivity implements SurfaceHold
     }
 
 
+    // MediaPlayer Listener
     @Override
     public void onCompletion(MediaPlayer mediaPlayer) {
-        finish();
+        Log.d(TAG, "onCompletion: ");
     }
 
     @Override

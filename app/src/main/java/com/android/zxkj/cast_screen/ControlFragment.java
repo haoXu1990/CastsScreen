@@ -118,7 +118,10 @@ public class ControlFragment extends Fragment implements IDisplayDevice, CastFra
         );
 
         // 注册订阅监听
-        DLNACastManager.getInstance().registerSubscriptionListener(event -> mStatusInfo.setText(event.getValue()));
+        DLNACastManager.getInstance().registerSubscriptionListener(event -> {
+            Log.d(TAG, "registerSubscriptionListener: " + event.getValue());
+            mStatusInfo.setText(event.getValue());
+        });
     }
 
     private void initComponent(View view) {

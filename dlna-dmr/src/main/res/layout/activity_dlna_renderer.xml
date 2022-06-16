@@ -19,14 +19,15 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         />
-    <LinearLayout
+    <SurfaceView
+        android:id="@+id/video_view"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
-        <SurfaceView
-            android:id="@+id/video_view"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
-    </LinearLayout>
+        android:layout_height="match_parent"/>
+<!--    <LinearLayout-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="match_parent">-->
+<!--        -->
+<!--    </LinearLayout>-->
 
 
 <!--    <com.android.zxkj.dlna.dmr.media.ZxineVideoView-->

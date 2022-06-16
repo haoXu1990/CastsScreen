@@ -46,6 +46,7 @@ public class ControlImpl implements ICastInterface.IControl {
     @Override
     public void cast(Device<?, ?, ?> device, ICast object) {
         mUri = object.getUri();
+        // 这里有问题，目前这里只有 AVService，音视频到问题不大，如果是图片如果搞
         mServiceFactory.getAvService().cast(new ICastInterface.CastEventListener() {
             @Override
             public void onSuccess(String result) {

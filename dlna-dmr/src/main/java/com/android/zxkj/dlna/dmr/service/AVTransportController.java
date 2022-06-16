@@ -97,6 +97,8 @@ public class AVTransportController implements IRendererInterface.IAVTransportCon
         } catch (Exception ex) {
             throw new AVTransportException(ErrorCode.INVALID_ARGS, "CurrentURI can not be null or malformed");
         }
+        Log.d(TAG, "setAVTransportURI: " + currentURI + "MetaData: " + currentURIMetaData);
+
         mMediaInfo = new MediaInfo(currentURI, currentURIMetaData, new UnsignedIntegerFourBytes(1), "", StorageMedium.NETWORK);
         mOriginPositionInfo = new PositionInfo(1, currentURIMetaData, currentURI);
         DLNARenderActivity.startActivity(mApplicationContext, currentURI);
