@@ -96,15 +96,28 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onCheckedChanged(RadioGroup radioGroup, int i) {
             if (i == R.id.cast_type_ctrl) {
+                // 和下面一样，
+                ((IDisplayDevice) mLocalControlFragment).setCastDevice(null);
+
                 getSupportFragmentManager().beginTransaction()
                         .show(mControlFragment)
                         .hide(mLocalControlFragment)
                         .commit();
+                if (mDeviceListAdapter != null) {
+                    mDeviceListAdapter.setSelectedDevice(null);
+                }
             } else if (i == R.id.cast_type_ctrl_local) {
+
+                // 本地投射，可能投射的图片，需要关这边的设备, 这个只是单纯的Demo展示逻辑，和实际使用无关
+                ((IDisplayDevice) mControlFragment).setCastDevice(null);
+
                 getSupportFragmentManager().beginTransaction()
                         .show(mLocalControlFragment)
                         .hide(mControlFragment)
                         .commit();
+                if (mDeviceListAdapter != null) {
+                    mDeviceListAdapter.setSelectedDevice(null);
+                }
             }
         }
     };

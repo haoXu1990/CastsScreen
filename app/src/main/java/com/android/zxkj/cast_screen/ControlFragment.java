@@ -55,8 +55,6 @@ public class ControlFragment extends Fragment implements IDisplayDevice, CastFra
                         // 投屏开始，处理业务逻辑
                         // 这里只代表服务端处理成功，不是播放段播放成功
                         Toast.makeText(getActivity(), "Cast: " + result, Toast.LENGTH_LONG).show();
-                        mPositionMsgHandler.start(0);
-                        mVolumeMsgHandler.start(0);
                     }
 
                     @Override
@@ -69,6 +67,8 @@ public class ControlFragment extends Fragment implements IDisplayDevice, CastFra
                 new ICastInterface.PlayEventListener() {
                     @Override
                     public void onSuccess(Void result) {
+                        mPositionMsgHandler.start(0);
+                        mVolumeMsgHandler.start(0);
                         Toast.makeText(getActivity(), "Play", Toast.LENGTH_LONG).show();
                     }
 
@@ -93,6 +93,8 @@ public class ControlFragment extends Fragment implements IDisplayDevice, CastFra
                 new ICastInterface.StopEventListener() {
                     @Override
                     public void onSuccess(Void result) {
+                        mPositionMsgHandler.stop();
+                        mVolumeMsgHandler.stop();
                         Toast.makeText(getActivity(), "Stop", Toast.LENGTH_SHORT).show();
                     }
 
@@ -187,18 +189,27 @@ public class ControlFragment extends Fragment implements IDisplayDevice, CastFra
         }
     }
 
+
     private long mDurationMillSeconds = 0;
     private final Runnable mPositionRunnable = () -> {
       if (mDevice == null) return;
       DLNACastManager.getInstance().getPositionInfo(mDevice, ((positionInfo, errMsg) -> {
           if (positionInfo != null) {
+
               mPositionInfo.setText(String.format("%s/%s", positionInfo.getRelTime(), positionInfo.getTrackDuration()));
-              if (positionInfo.getTrackDurationSeconds() != 0) {
-                  mDurationMillSeconds = positionInfo.getTrackDurationSeconds() * 1000;
-                  mPositionSeekBar.setProgress((int) (positionInfo.getTrackElapsedSeconds() * 100 / positionInfo.getTrackDurationSeconds()));
-              } else {
-                  mPositionSeekBar.setProgress(0);
+              try {
+                  // 这里使用try 是应为如果投射的是图片，使用的还是AVTransport，
+                  //　就会出现一直获取播放信息　getTrackDurationSeconds　就会报错
+                  if (positionInfo.getTrackDurationSeconds() != 0) {
+                      mDurationMillSeconds = positionInfo.getTrackDurationSeconds() * 1000;
+                      mPositionSeekBar.setProgress((int) (positionInfo.getTrackElapsedSeconds() * 100 / positionInfo.getTrackDurationSeconds()));
+                  } else {
+                      mPositionSeekBar.setProgress(0);
+                  }
+              } catch (Exception e) {
+                  // 不做处理
               }
+
           } else {
               mPositionInfo.setText(errMsg);
           }

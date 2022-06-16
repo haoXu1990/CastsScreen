@@ -7,23 +7,37 @@
     android:background="@color/white"
     tools:context=".MainActivity">
 
-    <com.google.android.material.appbar.AppBarLayout
+    <TextView
+        android:id="@+id/tv_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:padding="12dp"
+        android:text="DLNA Renderer"
+        android:textColor="@color/black"
+        android:textSize="24dp"
+        android:textStyle="bold"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        android:theme="@style/Theme.ZXKJCastsScreen">
+        tools:ignore="HardcodedText,SpUsage" />
 
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            tools:title="DLNA Renderer" />
+    <TextView
+        android:id="@+id/tv_wifi"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="12dp"
+        android:text="WiFi: "
+        android:textColor="@color/black"
+        android:textSize="14dp"
+        app:layout_constraintTop_toBottomOf="@+id/tv_title"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        tools:ignore="HardcodedText,SpUsage" />
 
-    </com.google.android.material.appbar.AppBarLayout>
 
 
     <TextView
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="12dp"
         android:text="播放器，请用手机投屏"

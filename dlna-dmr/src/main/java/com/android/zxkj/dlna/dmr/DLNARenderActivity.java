@@ -86,8 +86,6 @@ public class DLNARenderActivity extends AppCompatActivity {
 
         @Override
         public void onEvents(Player player, Player.Events events) {
-            Player.EventListener.super.onEvents(player, events);
-
             Log.d(TAG, events.toString());
         }
 
@@ -111,8 +109,10 @@ public class DLNARenderActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dlna_renderer);
 
+
         mImageView = findViewById(R.id.my_imageView);
         mImageView.setVisibility(View.GONE);
+
 
         mVideoView = findViewById(R.id.video_view);
         mPlayer = new SimpleExoPlayer.Builder(this).setLooper(Looper.getMainLooper()).build();
@@ -121,7 +121,9 @@ public class DLNARenderActivity extends AppCompatActivity {
         mPlayer.addListener(mPlayerListenner);
         mVideoView.setPlayer(mPlayer);
 
+
         mProgressBar = findViewById(R.id.video_progress);
+
         bindService(new Intent(this, DLNARendererService.class), mServiceConnection, Service.BIND_AUTO_CREATE);
         openMedia(getIntent());
     }
@@ -138,11 +140,21 @@ public class DLNARenderActivity extends AppCompatActivity {
             mProgressBar.setVisibility(View.VISIBLE);
 
             String currentUri = bundle.getString(KEY_EXTRA_CURRENT_URI);
-            if (currentUri.endsWith("jpg") || currentUri.endsWith("png")) {
+            // 暂时没有找到专门的图片渲染事件，这里是用的 AVTranport,
+            // 先根据后缀判断以下类型
+            if (currentUri.endsWith(".jpg") || currentUri.endsWith(".png")) {
+                if (mPlayer != null && mPlayer.isPlaying()) {
+                    mPlayer.stop();
+                }
+
+                mVideoView.setVisibility(View.INVISIBLE);
+
                 mImageView.setImageURL(currentUri);
                 mImageView.setVisibility(View.VISIBLE);
                 mProgressBar.setVisibility(View.INVISIBLE);
             } else {
+                mVideoView.setVisibility(View.VISIBLE);
+
                 mImageView.setVisibility(View.GONE);
                 // 设置媒体信息
                 MediaItem mediaItem =  MediaItem.fromUri(currentUri);
