@@ -23,6 +23,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void resetWifiInfo() {
-        ((TextView) findViewById(R.id.network_info)).setText(DeviceWiFiInfo.getWiFiInfoSSID(this));
+
+//        ((TextView) findViewById(R.id.network_info)).setText(DeviceWiFiInfo.getWiFiInfoSSID(this));
     }
 }
