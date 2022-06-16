@@ -18,6 +18,7 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.android.zxkj.dlna.dmr.widget.MyImageView;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.MediaItem;
@@ -49,6 +50,8 @@ public class DLNARenderActivity extends AppCompatActivity {
     private SimpleExoPlayer mPlayer;
     private ProgressBar mProgressBar;
     private DLNARendererService mRendererService;
+
+    private MyImageView mImageView;
 
     private final Player.EventListener mPlayerListenner = new Player.EventListener() {
         @Override
@@ -108,8 +111,10 @@ public class DLNARenderActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dlna_renderer);
 
-        mVideoView = findViewById(R.id.video_view);
+        mImageView = findViewById(R.id.my_imageView);
+        mImageView.setVisibility(View.GONE);
 
+        mVideoView = findViewById(R.id.video_view);
         mPlayer = new SimpleExoPlayer.Builder(this).setLooper(Looper.getMainLooper()).build();
         mPlayer.setThrowsWhenUsingWrongThread(false);
 
@@ -131,12 +136,21 @@ public class DLNARenderActivity extends AppCompatActivity {
         Bundle bundle = intent.getExtras();
         if (bundle != null) {
             mProgressBar.setVisibility(View.VISIBLE);
+
             String currentUri = bundle.getString(KEY_EXTRA_CURRENT_URI);
-            // 设置媒体信息
-            MediaItem mediaItem =  MediaItem.fromUri(currentUri);
-            mPlayer.setMediaItem(mediaItem);
-            // 准备播放
-            mPlayer.prepare();
+            if (currentUri.endsWith("jpg") || currentUri.endsWith("png")) {
+                mImageView.setImageURL(currentUri);
+                mImageView.setVisibility(View.VISIBLE);
+                mProgressBar.setVisibility(View.INVISIBLE);
+            } else {
+                mImageView.setVisibility(View.GONE);
+                // 设置媒体信息
+                MediaItem mediaItem =  MediaItem.fromUri(currentUri);
+                mPlayer.setMediaItem(mediaItem);
+                // 准备播放
+                mPlayer.prepare();
+            }
+
         } else {
             Toast.makeText(this, "没有找到有效的视频地址，请检查...", Toast.LENGTH_SHORT).show();
             finish();
