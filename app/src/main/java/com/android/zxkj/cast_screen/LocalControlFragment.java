@@ -94,7 +94,8 @@ public class LocalControlFragment extends Fragment implements IDisplayDevice {
         mCastPathUrl = selectPath;
         view.findViewById(R.id.local_ctrl_pick_content).setOnClickListener(view12 -> {
             Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-            intent.setType("video/*;audio/*;image/*");
+//            intent.setType("video/*;audio/*;image/*");
+            intent.setType("*/*");
             startActivityForResult(intent, REQUEST_CODE_SELECT);
         });
         view.findViewById(R.id.local_ctrl_cast).setOnClickListener(view1 -> {
