@@ -65,7 +65,7 @@ public class DLNARenderActivity extends AppCompatActivity implements SurfaceHold
         public void onServiceDisconnected(ComponentName name) {
             mRendererService = null;
             Toast.makeText(getApplicationContext(), "服务断开连接", Toast.LENGTH_LONG).show();
-//            finish();
+            finish();
         }
     };
 
@@ -90,6 +90,20 @@ public class DLNARenderActivity extends AppCompatActivity implements SurfaceHold
         mVideoView.setAudioStreamType(AudioManager.STREAM_MUSIC);
         mVideoView.setOnPreparedListener(this);
         mVideoView.setOnCompletionListener(this);
+        mVideoView.setOnBufferingUpdateListener(new MediaPlayer.OnBufferingUpdateListener() {
+            @Override
+            public void onBufferingUpdate(MediaPlayer mediaPlayer, int i) {
+                Log.d(TAG, "onBufferingUpdate: " + i);
+            }
+        });
+
+        mVideoView.setOnVideoSizeChangedListener(new MediaPlayer.OnVideoSizeChangedListener() {
+            @Override
+            public void onVideoSizeChanged(MediaPlayer mediaPlayer, int i, int i1) {
+                Log.d(TAG, "onVideoSizeChanged: " + i + " i1: " + i1);
+            }
+        });
+
 
         // MediaPlayer 需要的 SurfaceView
         mSurfaceView = findViewById(R.id.video_view);
@@ -118,13 +132,17 @@ public class DLNARenderActivity extends AppCompatActivity implements SurfaceHold
             // 投屏的时候目前使用的是AVTransport
             if (currentUri.endsWith(".png") || currentUri.endsWith(".jpg")) {
                 Log.d(TAG, "open Image Media Uir: "+ currentUri);
+                if (mVideoView != null) {
+                    mVideoView.stop();
+                }
                 mImageView.setVisibility(View.VISIBLE);
                 mProgressBar.setVisibility(View.INVISIBLE);
                 mSurfaceView.setVisibility(View.GONE);
+
                 mImageView.setImageURL(currentUri);
             } else {
                 Log.d(TAG, "open Video Media Uir: "+ currentUri);
-                // 绑定 RendererService , 放在这里是应为 目前的投屏都是 AVTransport, 如是投屏的图片的话，一直接获取播放信息就要报错，
+
                 bindService(new Intent(this, DLNARendererService.class), mServiceConnection, Service.BIND_AUTO_CREATE);
                 mImageView.setVisibility(View.INVISIBLE);
                 mSurfaceView.setVisibility(View.VISIBLE);
