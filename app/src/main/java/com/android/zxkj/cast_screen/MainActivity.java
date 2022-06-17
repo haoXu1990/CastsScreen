@@ -98,7 +98,7 @@ public class MainActivity extends AppCompatActivity {
             if (i == R.id.cast_type_ctrl) {
                 // 和下面一样，
                 ((IDisplayDevice) mLocalControlFragment).setCastDevice(null);
-
+                ((IDisplayDevice) mControlFragment).setCastDevice(null);
                 getSupportFragmentManager().beginTransaction()
                         .show(mControlFragment)
                         .hide(mLocalControlFragment)
@@ -110,7 +110,7 @@ public class MainActivity extends AppCompatActivity {
 
                 // 本地投射，可能投射的图片，需要关这边的设备, 这个只是单纯的Demo展示逻辑，和实际使用无关
                 ((IDisplayDevice) mControlFragment).setCastDevice(null);
-
+                ((IDisplayDevice) mLocalControlFragment).setCastDevice(null);
                 getSupportFragmentManager().beginTransaction()
                         .show(mLocalControlFragment)
                         .hide(mControlFragment)

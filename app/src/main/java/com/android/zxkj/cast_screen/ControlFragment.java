@@ -53,6 +53,8 @@ public class ControlFragment extends Fragment implements IDisplayDevice, CastFra
                     @Override
                     public void onSuccess(String result) {
                         // 投屏开始，处理业务逻辑
+                        mPositionMsgHandler.start(0);
+                        mVolumeMsgHandler.start(0);
                         // 这里只代表服务端处理成功，不是播放段播放成功
                         Toast.makeText(getActivity(), "Cast: " + result, Toast.LENGTH_LONG).show();
                     }
@@ -67,8 +69,7 @@ public class ControlFragment extends Fragment implements IDisplayDevice, CastFra
                 new ICastInterface.PlayEventListener() {
                     @Override
                     public void onSuccess(Void result) {
-                        mPositionMsgHandler.start(0);
-                        mVolumeMsgHandler.start(0);
+
                         Toast.makeText(getActivity(), "Play", Toast.LENGTH_LONG).show();
                     }
 

@@ -6,6 +6,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.media.AudioManager;
+import android.media.MediaCodec;
+import android.media.MediaCodecList;
+import android.media.MediaFormat;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Looper;
@@ -16,16 +20,23 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.android.zxkj.dlna.dmr.widget.MyImageView;
+import com.google.android.exoplayer2.DefaultRenderersFactory;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.MediaItem;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
+import com.google.android.exoplayer2.mediacodec.MediaCodecInfo;
+import com.google.android.exoplayer2.mediacodec.MediaCodecSelector;
+import com.google.android.exoplayer2.mediacodec.MediaCodecUtil;
+import com.google.android.exoplayer2.mediacodec.MediaFormatUtil;
 import com.google.android.exoplayer2.ui.PlayerView;
 
+import org.eclipse.jetty.util.StringUtil;
 import org.fourthline.cling.model.types.UnsignedIntegerFourBytes;
 import org.fourthline.cling.support.avtransport.lastchange.AVTransportVariable;
 import org.fourthline.cling.support.model.Channel;
@@ -33,11 +44,16 @@ import org.fourthline.cling.support.model.TransportState;
 import org.fourthline.cling.support.renderingcontrol.lastchange.ChannelVolume;
 import org.fourthline.cling.support.renderingcontrol.lastchange.RenderingControlVariable;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 public class DLNARenderActivity extends AppCompatActivity {
     private static final String KEY_EXTRA_CURRENT_URI = "Renderer.KeyExtra.CurrentUri";
     private static final String TAG = "DLNARenderActivity";
     public static void startActivity(Context context, String currentURI) {
-        Log.i(TAG, "startActivity", new Exception());
         Intent intent = new Intent(context, DLNARenderActivity.class);
         intent.putExtra(KEY_EXTRA_CURRENT_URI, currentURI);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); // start from service content,should add 'FLAG_ACTIVITY_NEW_TASK' flag.
@@ -115,8 +131,43 @@ public class DLNARenderActivity extends AppCompatActivity {
 
 
         mVideoView = findViewById(R.id.video_view);
-        mPlayer = new SimpleExoPlayer.Builder(this).setLooper(Looper.getMainLooper()).build();
+
+        DefaultRenderersFactory defaultRenderersFactory = new DefaultRenderersFactory(this);
+
+        defaultRenderersFactory.setMediaCodecSelector(new MediaCodecSelector() {
+            @RequiresApi(api = Build.VERSION_CODES.Q)
+            @Override
+            public List<MediaCodecInfo> getDecoderInfos(String mimeType, boolean requiresSecureDecoder, boolean requiresTunnelingDecoder) throws MediaCodecUtil.DecoderQueryException {
+
+                MediaCodecList list = new MediaCodecList(MediaCodecList.REGULAR_CODECS);
+
+
+                android.media.MediaCodecInfo[] infos = list.getCodecInfos();
+
+               List<MediaCodecInfo> resultMediaCodecInfo = new ArrayList<>();
+
+
+                for (android.media.MediaCodecInfo items:  infos) {
+
+                    final String name = items.getName();
+                    if (!items.isEncoder()) {
+                        if (name.startsWith("OMX.")) {
+                            Log.d(TAG,"找到合适的解码器" + name);
+                            resultMediaCodecInfo.add(MediaCodecInfo.newInstance("OMX.google.hevc.decoder",
+                                    "video/hevc", "video/hevc", null,
+                                    items.isHardwareAccelerated(),items.isSoftwareOnly(),items.isVendor(),
+                                    false, false ));
+                        }
+                    }
+                }
+
+                return resultMediaCodecInfo;
+            }
+        });
+
+        mPlayer = new SimpleExoPlayer.Builder(this, defaultRenderersFactory).setLooper(Looper.getMainLooper()).build();
         mPlayer.setThrowsWhenUsingWrongThread(false);
+
 
         mPlayer.addListener(mPlayerListenner);
         mVideoView.setPlayer(mPlayer);
@@ -128,6 +179,23 @@ public class DLNARenderActivity extends AppCompatActivity {
         openMedia(getIntent());
     }
 
+
+    public MediaCodec createBestCodec() throws IOException {
+        MediaCodecList list = new MediaCodecList(MediaCodecList.REGULAR_CODECS);
+        android.media.MediaCodecInfo[] codecs = list.getCodecInfos();
+        for (android.media.MediaCodecInfo codec : codecs) {
+            if (!codec.isEncoder()) {
+                String name = codec.getName();
+                if (name.startsWith("OMX.google") && name.contains("hevc")) {
+                    Log.e(TAG,"找到合适的解码器");
+                    return MediaCodec.createByCodecName(codec.getName());
+                }
+            }
+        }
+        return MediaCodec.createDecoderByType(MediaFormat.MIMETYPE_VIDEO_HEVC);
+    }
+
+
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
@@ -136,10 +204,13 @@ public class DLNARenderActivity extends AppCompatActivity {
 
     private void openMedia(Intent intent) {
         Bundle bundle = intent.getExtras();
+
         if (bundle != null) {
             mProgressBar.setVisibility(View.VISIBLE);
 
             String currentUri = bundle.getString(KEY_EXTRA_CURRENT_URI);
+
+            Log.d(TAG, "open Media Uri: " + currentUri);
             // 暂时没有找到专门的图片渲染事件，这里是用的 AVTranport,
             // 先根据后缀判断以下类型
             if (currentUri.endsWith(".jpg") || currentUri.endsWith(".png")) {
@@ -153,11 +224,18 @@ public class DLNARenderActivity extends AppCompatActivity {
                 mImageView.setVisibility(View.VISIBLE);
                 mProgressBar.setVisibility(View.INVISIBLE);
             } else {
-                mVideoView.setVisibility(View.VISIBLE);
+                if (mVideoView.getVisibility() != View.VISIBLE) {
+                    mVideoView.setVisibility(View.VISIBLE);
+                }
+
+                if (mPlayer != null && mPlayer.isPlaying()) {
+                    mPlayer.stop();
+                }
 
                 mImageView.setVisibility(View.GONE);
                 // 设置媒体信息
                 MediaItem mediaItem =  MediaItem.fromUri(currentUri);
+
                 mPlayer.setMediaItem(mediaItem);
                 // 准备播放
                 mPlayer.prepare();

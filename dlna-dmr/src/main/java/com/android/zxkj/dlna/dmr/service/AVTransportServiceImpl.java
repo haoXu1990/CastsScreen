@@ -41,10 +41,6 @@ public class AVTransportServiceImpl extends AbstractAVTransportService {
     }
 
     public PositionInfo getPositionInfo(UnsignedIntegerFourBytes instanceId) {
-        if (Looper.getMainLooper() == Looper.myLooper()) {
-            Log.d("", "");
-        }
-        Log.d("AVTransportServiceImpl", "getPositionInfo: ", new Exception());
         return mRenderControlManager.getAvTransportControl(instanceId).getPositionInfo();
     }
 
