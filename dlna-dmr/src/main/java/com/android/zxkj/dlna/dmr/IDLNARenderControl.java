@@ -1,5 +1,6 @@
 package com.android.zxkj.dlna.dmr;
 
+import android.media.MediaPlayer;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
@@ -24,17 +25,17 @@ public interface IDLNARenderControl {
     // -------------------------------------------------------------------------------------------
     final class VideoViewRenderControl implements IDLNARenderControl {
 
-        private final ExoPlayer videoView;
+        private final MediaPlayer videoView;
 
         private final Handler mHandler = new Handler(Looper.getMainLooper());
 
-        public VideoViewRenderControl(ExoPlayer videoView) {
+        public VideoViewRenderControl(MediaPlayer videoView) {
             this.videoView = videoView;
         }
 
         @Override
         public void play() {
-            videoView.play();
+            videoView.start();
         }
 
         @Override
@@ -54,12 +55,18 @@ public interface IDLNARenderControl {
 
         @Override
         public long getPosition() {
-            return videoView.getCurrentPosition();
+            if (videoView.isPlaying()) {
+                return videoView.getCurrentPosition();
+            }
+            return 0L;
         }
 
         @Override
         public long getDuration() {
-            return videoView.getDuration();
+            if (videoView.isPlaying()) {
+                return videoView.getDuration();
+            }
+            return  0L;
         }
     }
 

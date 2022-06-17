@@ -9,16 +9,20 @@ import android.media.AudioManager;
 import android.media.MediaCodec;
 import android.media.MediaCodecList;
 import android.media.MediaFormat;
+import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Looper;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
@@ -50,7 +54,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-public class DLNARenderActivity extends AppCompatActivity {
+public class DLNARenderActivity extends AppCompatActivity implements MediaPlayer.OnVideoSizeChangedListener, MediaPlayer.OnBufferingUpdateListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener {
     private static final String KEY_EXTRA_CURRENT_URI = "Renderer.KeyExtra.CurrentUri";
     private static final String TAG = "DLNARenderActivity";
     public static void startActivity(Context context, String currentURI) {
@@ -62,56 +66,20 @@ public class DLNARenderActivity extends AppCompatActivity {
 
     private final UnsignedIntegerFourBytes INSTANCE_ID = new UnsignedIntegerFourBytes(0);
 
-    private PlayerView mVideoView;
-    private SimpleExoPlayer mPlayer;
+
     private ProgressBar mProgressBar;
     private DLNARendererService mRendererService;
-
     private MyImageView mImageView;
 
-    private final Player.EventListener mPlayerListenner = new Player.EventListener() {
-        @Override
-        public void onPlayerError(ExoPlaybackException error) {
-            Player.EventListener.super.onPlayerError(error);
-            Log.d(TAG, error.toString());
-            mProgressBar.setVisibility(View.INVISIBLE);
-            notifyTransportStateChanged(TransportState.STOPPED);
-            finish();
-        }
-
-        @Override
-        public void onPlaybackStateChanged(int state) {
-            Player.EventListener.super.onPlaybackStateChanged(state);
-
-            switch (state) {
-                case ExoPlayer.STATE_IDLE: //播放器已实例化，但尚未准备就绪。
-                    break;
-                case ExoPlayer.STATE_READY: //播放器可以立即从当前位置开始播放
-                    // 播放
-                    mPlayer.play();
-                    Log.d(TAG, "EXOPlayer start play");
-                    mProgressBar.setVisibility(View.INVISIBLE);
-                    notifyTransportStateChanged(TransportState.PLAYING);
-                    break;
-                case ExoPlayer.STATE_ENDED: //播放器已完成媒体播放。
-                    notifyTransportStateChanged(TransportState.STOPPED);
-                    finish();
-                    break;
-            }
-        }
-
-        @Override
-        public void onEvents(Player player, Player.Events events) {
-            Log.d(TAG, events.toString());
-        }
-
-    };
+    private SurfaceHolder mSurfaceHolder;
+    private SurfaceView mSurfaceView;
+    private MediaPlayer mMediaPlayer;
 
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             mRendererService = ((DLNARendererService.RendererServiceBinder) service).getRendererService();
-            mRendererService.setRenderControl(new IDLNARenderControl.VideoViewRenderControl(mPlayer));
+            mRendererService.setRenderControl(new IDLNARenderControl.VideoViewRenderControl(mMediaPlayer));
         }
 
         @Override
@@ -128,57 +96,39 @@ public class DLNARenderActivity extends AppCompatActivity {
 
         mImageView = findViewById(R.id.my_imageView);
         mImageView.setVisibility(View.GONE);
+        mProgressBar = findViewById(R.id.video_progress);
 
+        mMediaPlayer = new MediaPlayer();
+        mMediaPlayer.setOnPreparedListener(this);
+        mMediaPlayer.setOnCompletionListener(this);
+        mMediaPlayer.setOnBufferingUpdateListener(this);
+        mMediaPlayer.setOnVideoSizeChangedListener(this);
+        mMediaPlayer.setOnErrorListener(this);
 
-        mVideoView = findViewById(R.id.video_view);
-
-        DefaultRenderersFactory defaultRenderersFactory = new DefaultRenderersFactory(this);
-
-        defaultRenderersFactory.setMediaCodecSelector(new MediaCodecSelector() {
-            @RequiresApi(api = Build.VERSION_CODES.Q)
+        mSurfaceView = findViewById(R.id.my_surfaceView);
+        mSurfaceHolder = mSurfaceView.getHolder();
+        mSurfaceHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+        mSurfaceHolder.addCallback(new SurfaceHolder.Callback() {
             @Override
-            public List<MediaCodecInfo> getDecoderInfos(String mimeType, boolean requiresSecureDecoder, boolean requiresTunnelingDecoder) throws MediaCodecUtil.DecoderQueryException {
+            public void surfaceCreated(@NonNull SurfaceHolder surfaceHolder) {
+                Log.d(TAG, "surfaceCreated: " + System.currentTimeMillis());
+                mMediaPlayer.setDisplay(mSurfaceView.getHolder());
+            }
 
-                MediaCodecList list = new MediaCodecList(MediaCodecList.REGULAR_CODECS);
+            @Override
+            public void surfaceChanged(@NonNull SurfaceHolder surfaceHolder, int i, int i1, int i2) {
+                Log.d(TAG, "surfaceChanged: " + System.currentTimeMillis());
+            }
 
-
-                android.media.MediaCodecInfo[] infos = list.getCodecInfos();
-
-               List<MediaCodecInfo> resultMediaCodecInfo = new ArrayList<>();
-
-
-                for (android.media.MediaCodecInfo items:  infos) {
-
-                    final String name = items.getName();
-                    if (!items.isEncoder()) {
-                        if (name.startsWith("OMX.")) {
-                            Log.d(TAG,"找到合适的解码器" + name);
-                            resultMediaCodecInfo.add(MediaCodecInfo.newInstance("OMX.google.hevc.decoder",
-                                    "video/hevc", "video/hevc", null,
-                                    items.isHardwareAccelerated(),items.isSoftwareOnly(),items.isVendor(),
-                                    false, false ));
-                        }
-                    }
-                }
-
-                return resultMediaCodecInfo;
+            @Override
+            public void surfaceDestroyed(@NonNull SurfaceHolder surfaceHolder) {
+                Log.d(TAG, "surfaceDestroyed: " + System.currentTimeMillis());
             }
         });
-
-        mPlayer = new SimpleExoPlayer.Builder(this, defaultRenderersFactory).setLooper(Looper.getMainLooper()).build();
-        mPlayer.setThrowsWhenUsingWrongThread(false);
-
-
-        mPlayer.addListener(mPlayerListenner);
-        mVideoView.setPlayer(mPlayer);
-
-
-        mProgressBar = findViewById(R.id.video_progress);
 
         bindService(new Intent(this, DLNARendererService.class), mServiceConnection, Service.BIND_AUTO_CREATE);
         openMedia(getIntent());
     }
-
 
     public MediaCodec createBestCodec() throws IOException {
         MediaCodecList list = new MediaCodecList(MediaCodecList.REGULAR_CODECS);
@@ -214,31 +164,34 @@ public class DLNARenderActivity extends AppCompatActivity {
             // 暂时没有找到专门的图片渲染事件，这里是用的 AVTranport,
             // 先根据后缀判断以下类型
             if (currentUri.endsWith(".jpg") || currentUri.endsWith(".png")) {
-                if (mPlayer != null && mPlayer.isPlaying()) {
-                    mPlayer.stop();
+                if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
+                    mMediaPlayer.reset();
                 }
 
-                mVideoView.setVisibility(View.INVISIBLE);
+                mSurfaceView.setVisibility(View.INVISIBLE);
 
                 mImageView.setImageURL(currentUri);
                 mImageView.setVisibility(View.VISIBLE);
                 mProgressBar.setVisibility(View.INVISIBLE);
             } else {
-                if (mVideoView.getVisibility() != View.VISIBLE) {
-                    mVideoView.setVisibility(View.VISIBLE);
+                if (mSurfaceView.getVisibility() != View.VISIBLE) {
+                    mSurfaceView.setVisibility(View.VISIBLE);
                 }
 
-                if (mPlayer != null && mPlayer.isPlaying()) {
-                    mPlayer.stop();
+                if (mMediaPlayer != null) {
+                    Log.d(TAG, "openMedia:  isPlaying, reset");
+                    mMediaPlayer.reset();
                 }
 
-                mImageView.setVisibility(View.GONE);
-                // 设置媒体信息
-                MediaItem mediaItem =  MediaItem.fromUri(currentUri);
+                mImageView.setVisibility(View.GONE);;
 
-                mPlayer.setMediaItem(mediaItem);
-                // 准备播放
-                mPlayer.prepare();
+                try {
+                    // 准备播放
+                    mMediaPlayer.setDataSource(currentUri);
+                    mMediaPlayer.prepare();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
 
         } else {
@@ -249,8 +202,9 @@ public class DLNARenderActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-        if (mPlayer != null) mPlayer.stop();
+        if (mMediaPlayer != null) mMediaPlayer.release();
         notifyTransportStateChanged(TransportState.STOPPED);
+        Log.d(TAG, "onDestroy:  begin unbindService");
         unbindService(mServiceConnection);
         super.onDestroy();
     }
@@ -263,11 +217,11 @@ public class DLNARenderActivity extends AppCompatActivity {
                 int volume = ((AudioManager) getApplication().getSystemService(Context.AUDIO_SERVICE)).getStreamVolume(AudioManager.STREAM_MUSIC);
                 notifyRenderVolumeChanged(volume);
             } else if (keyCode == KeyEvent.KEYCODE_ENTER || keyCode == KeyEvent.KEYCODE_DPAD_CENTER) {
-                if (mPlayer != null && mPlayer.isPlaying()) {
-                    mPlayer.pause();
+                if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
+                    mMediaPlayer.pause();
                     notifyTransportStateChanged(TransportState.PAUSED_PLAYBACK);
-                } else if (mPlayer != null) {
-                    mPlayer.play();
+                } else if (mMediaPlayer != null) {
+                    mMediaPlayer.start();
                     notifyTransportStateChanged(TransportState.PLAYING);
                 }
             }
@@ -287,5 +241,34 @@ public class DLNARenderActivity extends AppCompatActivity {
             mRendererService.getAudioControlLastChange()
                     .setEventedValue(INSTANCE_ID, new RenderingControlVariable.Volume(new ChannelVolume(Channel.Master, volume)));
         }
+    }
+
+    @Override
+    public void onVideoSizeChanged(MediaPlayer mediaPlayer, int i, int i1) {
+        Log.d(TAG, "onVideoSizeChanged: i: " + i + " i1: " + i1);
+    }
+
+    @Override
+    public void onBufferingUpdate(MediaPlayer mediaPlayer, int i) {
+        Log.d(TAG, "onBufferingUpdate: " + i);
+    }
+
+    @Override
+    public void onCompletion(MediaPlayer mediaPlayer) {
+        Log.d(TAG, "onCompletion: release MediaPlayer =  " + System.currentTimeMillis());
+        mediaPlayer.release();
+        finish();
+    }
+
+    @Override
+    public void onPrepared(MediaPlayer mediaPlayer) {
+        Log.d(TAG, "onPrepared: MediaPlayer start  =  " + System.currentTimeMillis());
+        mMediaPlayer.start();
+        mProgressBar.setVisibility(View.INVISIBLE);
+    }
+
+    @Override
+    public boolean onError(MediaPlayer mediaPlayer, int i, int i1) {
+        return true;
     }
 }
