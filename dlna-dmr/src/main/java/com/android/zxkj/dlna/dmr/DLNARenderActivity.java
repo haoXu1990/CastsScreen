@@ -28,12 +28,12 @@ import com.google.android.exoplayer2.DefaultRenderersFactory;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.MediaItem;
+import com.google.android.exoplayer2.PlaybackException;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.mediacodec.MediaCodecInfo;
 import com.google.android.exoplayer2.mediacodec.MediaCodecSelector;
 import com.google.android.exoplayer2.mediacodec.MediaCodecUtil;
-import com.google.android.exoplayer2.mediacodec.MediaFormatUtil;
 import com.google.android.exoplayer2.ui.PlayerView;
 
 import org.eclipse.jetty.util.StringUtil;
@@ -64,15 +64,15 @@ public class DLNARenderActivity extends AppCompatActivity {
 
     private PlayerView mVideoView;
     private SimpleExoPlayer mPlayer;
+    private ExoPlayer mPlayer1;
     private ProgressBar mProgressBar;
     private DLNARendererService mRendererService;
 
     private MyImageView mImageView;
 
-    private final Player.EventListener mPlayerListenner = new Player.EventListener() {
+    private final Player.Listener mPlayerListenner = new Player.Listener() {
         @Override
-        public void onPlayerError(ExoPlaybackException error) {
-            Player.EventListener.super.onPlayerError(error);
+        public void onPlayerError(PlaybackException error) {
             Log.d(TAG, error.toString());
             mProgressBar.setVisibility(View.INVISIBLE);
             notifyTransportStateChanged(TransportState.STOPPED);
@@ -81,7 +81,6 @@ public class DLNARenderActivity extends AppCompatActivity {
 
         @Override
         public void onPlaybackStateChanged(int state) {
-            Player.EventListener.super.onPlaybackStateChanged(state);
 
             switch (state) {
                 case ExoPlayer.STATE_IDLE: //播放器已实例化，但尚未准备就绪。
@@ -165,7 +164,7 @@ public class DLNARenderActivity extends AppCompatActivity {
             }
         });
 
-        mPlayer = new SimpleExoPlayer.Builder(this, defaultRenderersFactory).setLooper(Looper.getMainLooper()).build();
+        mPlayer = new SimpleExoPlayer.Builder(this).setLooper(Looper.getMainLooper()).build();
         mPlayer.setThrowsWhenUsingWrongThread(false);
 
 
