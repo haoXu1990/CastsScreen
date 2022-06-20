@@ -37,6 +37,7 @@ import org.fourthline.cling.support.lastchange.LastChange;
 import org.fourthline.cling.support.lastchange.LastChangeAwareServiceManager;
 import org.fourthline.cling.support.renderingcontrol.lastchange.RenderingControlLastChangeParser;
 
+import java.beans.PropertyChangeSupport;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -108,6 +109,11 @@ public class DLNARendererService extends AndroidUpnpServiceImpl {
     public LastChange getAudioControlLastChange() {
         return mAudioControlLastChange;
     }
+
+//    public PropertyChangeSupport getPropertyChangeSupport1() {
+//        return get;
+//    }
+
 
     public void setRenderControl(IDLNARenderControl control) {
         mRenderControlManager.addControl(new AVTransportController(getApplicationContext(), control));

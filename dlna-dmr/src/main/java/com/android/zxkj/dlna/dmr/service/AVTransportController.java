@@ -1,10 +1,12 @@
 package com.android.zxkj.dlna.dmr.service;
 
 import android.content.Context;
+import android.util.Xml;
 
 import com.android.zxkj.dlna.core.utils.CastUtils;
 import com.android.zxkj.dlna.dmr.DLNARenderActivity;
 import com.android.zxkj.dlna.dmr.IDLNARenderControl;
+import com.android.zxkj.dlna.dmr.utils.Utils;
 
 import org.fourthline.cling.model.ModelUtil;
 import org.fourthline.cling.model.types.ErrorCode;
@@ -19,7 +21,11 @@ import org.fourthline.cling.support.model.StorageMedium;
 import org.fourthline.cling.support.model.TransportAction;
 import org.fourthline.cling.support.model.TransportInfo;
 import org.fourthline.cling.support.model.TransportSettings;
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
 
+import java.io.IOException;
+import java.io.StringReader;
 import java.net.URI;
 
 public class AVTransportController implements IRendererInterface.IAVTransportControl {
@@ -146,4 +152,8 @@ public class AVTransportController implements IRendererInterface.IAVTransportCon
     @Override
     public void setRecordQualityMode(String newRecordQualityMode) {
     }
+
+
+
+
 }

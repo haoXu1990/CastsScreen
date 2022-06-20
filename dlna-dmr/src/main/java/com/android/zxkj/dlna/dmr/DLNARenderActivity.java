@@ -28,6 +28,7 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.android.zxkj.dlna.dmr.widget.MyImageView;
+import com.android.zxkj.dlna.dmr.widget.VideoView;
 import com.google.android.exoplayer2.DefaultRenderersFactory;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.ExoPlayer;
@@ -44,6 +45,7 @@ import org.eclipse.jetty.util.StringUtil;
 import org.fourthline.cling.model.types.UnsignedIntegerFourBytes;
 import org.fourthline.cling.support.avtransport.lastchange.AVTransportVariable;
 import org.fourthline.cling.support.model.Channel;
+import org.fourthline.cling.support.model.TransportAction;
 import org.fourthline.cling.support.model.TransportState;
 import org.fourthline.cling.support.renderingcontrol.lastchange.ChannelVolume;
 import org.fourthline.cling.support.renderingcontrol.lastchange.RenderingControlVariable;
@@ -75,15 +77,20 @@ public class DLNARenderActivity extends AppCompatActivity implements MediaPlayer
     private SurfaceView mSurfaceView;
     private MediaPlayer mMediaPlayer;
 
+    private VideoView mVideoView;
+
+
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
+            Log.d(TAG, "onServiceConnected: ");
             mRendererService = ((DLNARendererService.RendererServiceBinder) service).getRendererService();
             mRendererService.setRenderControl(new IDLNARenderControl.VideoViewRenderControl(mMediaPlayer));
         }
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
+            Log.d(TAG, "onServiceDisconnected: ");
             mRendererService = null;
         }
     };
@@ -127,6 +134,7 @@ public class DLNARenderActivity extends AppCompatActivity implements MediaPlayer
         });
 
         bindService(new Intent(this, DLNARendererService.class), mServiceConnection, Service.BIND_AUTO_CREATE);
+        // 在这里上报一下当前的状态
         openMedia(getIntent());
     }
 
@@ -231,15 +239,36 @@ public class DLNARenderActivity extends AppCompatActivity implements MediaPlayer
 
     private void notifyTransportStateChanged(TransportState transportState) {
         if (mRendererService != null) {
+
+            Log.d(TAG, "notifyTransportStateChanged: ");
+
             mRendererService.getAvTransportLastChange()
-                    .setEventedValue(INSTANCE_ID, new AVTransportVariable.TransportState(transportState));
+                    .setEventedValue(INSTANCE_ID,
+                            new AVTransportVariable.TransportState(transportState),
+                            new AVTransportVariable.CurrentTransportActions(
+                                    new TransportAction[] { TransportAction.Pause,
+                                            TransportAction.Stop, TransportAction.Seek,
+                                            TransportAction.Next, TransportAction.Previous })
+
+                    );
+
+//            try {
+//                Thread.sleep(1000);
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+//            mRendererService.getAvTransportLastChange().fire(mRendererService.getPropertyChangeSupport());
+        } else  {
+            Log.d(TAG, "notifyTransportStateChanged:  mRendererService == null ");
         }
     }
 
     private void notifyRenderVolumeChanged(int volume) {
         if (mRendererService != null) {
             mRendererService.getAudioControlLastChange()
-                    .setEventedValue(INSTANCE_ID, new RenderingControlVariable.Volume(new ChannelVolume(Channel.Master, volume)));
+                    .setEventedValue(INSTANCE_ID,
+                            new RenderingControlVariable.Volume(new ChannelVolume(Channel.Master, volume))
+                    );
         }
     }
 
@@ -265,7 +294,9 @@ public class DLNARenderActivity extends AppCompatActivity implements MediaPlayer
         Log.d(TAG, "onPrepared: MediaPlayer start  =  " + System.currentTimeMillis());
         mMediaPlayer.start();
         mProgressBar.setVisibility(View.INVISIBLE);
+        notifyTransportStateChanged(TransportState.PLAYING);
     }
+
 
     @Override
     public boolean onError(MediaPlayer mediaPlayer, int i, int i1) {
