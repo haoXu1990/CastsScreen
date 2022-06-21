@@ -10,6 +10,7 @@ import android.media.MediaCodec;
 import android.media.MediaCodecList;
 import android.media.MediaFormat;
 import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -51,12 +52,13 @@ import org.fourthline.cling.support.renderingcontrol.lastchange.ChannelVolume;
 import org.fourthline.cling.support.renderingcontrol.lastchange.RenderingControlVariable;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-public class DLNARenderActivity extends AppCompatActivity implements MediaPlayer.OnVideoSizeChangedListener, MediaPlayer.OnBufferingUpdateListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener {
+public class DLNARenderActivity extends AppCompatActivity {
     private static final String KEY_EXTRA_CURRENT_URI = "Renderer.KeyExtra.CurrentUri";
     private static final String TAG = "DLNARenderActivity";
     public static void startActivity(Context context, String currentURI) {
@@ -73,9 +75,9 @@ public class DLNARenderActivity extends AppCompatActivity implements MediaPlayer
     private DLNARendererService mRendererService;
     private MyImageView mImageView;
 
-    private SurfaceHolder mSurfaceHolder;
-    private SurfaceView mSurfaceView;
-    private MediaPlayer mMediaPlayer;
+//    private SurfaceHolder mSurfaceHolder;
+//    private SurfaceView mSurfaceView;
+//    private MediaPlayer mMediaPlayer;
 
     private VideoView mVideoView;
 
@@ -85,7 +87,7 @@ public class DLNARenderActivity extends AppCompatActivity implements MediaPlayer
         public void onServiceConnected(ComponentName name, IBinder service) {
             Log.d(TAG, "onServiceConnected: ");
             mRendererService = ((DLNARendererService.RendererServiceBinder) service).getRendererService();
-            mRendererService.setRenderControl(new IDLNARenderControl.VideoViewRenderControl(mMediaPlayer));
+            mRendererService.setRenderControl(new IDLNARenderControl.VideoViewRenderControl(mVideoView));
         }
 
         @Override
@@ -105,35 +107,10 @@ public class DLNARenderActivity extends AppCompatActivity implements MediaPlayer
         mImageView.setVisibility(View.GONE);
         mProgressBar = findViewById(R.id.video_progress);
 
-        mMediaPlayer = new MediaPlayer();
-        mMediaPlayer.setOnPreparedListener(this);
-        mMediaPlayer.setOnCompletionListener(this);
-        mMediaPlayer.setOnBufferingUpdateListener(this);
-        mMediaPlayer.setOnVideoSizeChangedListener(this);
-        mMediaPlayer.setOnErrorListener(this);
-
-        mSurfaceView = findViewById(R.id.my_surfaceView);
-        mSurfaceHolder = mSurfaceView.getHolder();
-        mSurfaceHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
-        mSurfaceHolder.addCallback(new SurfaceHolder.Callback() {
-            @Override
-            public void surfaceCreated(@NonNull SurfaceHolder surfaceHolder) {
-                Log.d(TAG, "surfaceCreated: " + System.currentTimeMillis());
-                mMediaPlayer.setDisplay(mSurfaceView.getHolder());
-            }
-
-            @Override
-            public void surfaceChanged(@NonNull SurfaceHolder surfaceHolder, int i, int i1, int i2) {
-                Log.d(TAG, "surfaceChanged: " + System.currentTimeMillis());
-            }
-
-            @Override
-            public void surfaceDestroyed(@NonNull SurfaceHolder surfaceHolder) {
-                Log.d(TAG, "surfaceDestroyed: " + System.currentTimeMillis());
-            }
-        });
+        mVideoView = findViewById(R.id.video_view);
 
         bindService(new Intent(this, DLNARendererService.class), mServiceConnection, Service.BIND_AUTO_CREATE);
+
         // 在这里上报一下当前的状态
         openMedia(getIntent());
     }
@@ -172,34 +149,15 @@ public class DLNARenderActivity extends AppCompatActivity implements MediaPlayer
             // 暂时没有找到专门的图片渲染事件，这里是用的 AVTranport,
             // 先根据后缀判断以下类型
             if (currentUri.endsWith(".jpg") || currentUri.endsWith(".png")) {
-                if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
-                    mMediaPlayer.reset();
-                }
-
-                mSurfaceView.setVisibility(View.INVISIBLE);
 
                 mImageView.setImageURL(currentUri);
                 mImageView.setVisibility(View.VISIBLE);
                 mProgressBar.setVisibility(View.INVISIBLE);
             } else {
-                if (mSurfaceView.getVisibility() != View.VISIBLE) {
-                    mSurfaceView.setVisibility(View.VISIBLE);
-                }
+                mProgressBar.setVisibility(View.INVISIBLE);
+                mImageView.setVisibility(View.GONE);
 
-                if (mMediaPlayer != null) {
-                    Log.d(TAG, "openMedia:  isPlaying, reset");
-                    mMediaPlayer.reset();
-                }
-
-                mImageView.setVisibility(View.GONE);;
-
-                try {
-                    // 准备播放
-                    mMediaPlayer.setDataSource(currentUri);
-                    mMediaPlayer.prepare();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                mVideoView.setVideoURI(Uri.parse(currentUri));
             }
 
         } else {
@@ -210,7 +168,7 @@ public class DLNARenderActivity extends AppCompatActivity implements MediaPlayer
 
     @Override
     protected void onDestroy() {
-        if (mMediaPlayer != null) mMediaPlayer.release();
+        if (mVideoView != null) mVideoView.releasePlayer();
         notifyTransportStateChanged(TransportState.STOPPED);
         Log.d(TAG, "onDestroy:  begin unbindService");
         unbindService(mServiceConnection);
@@ -225,11 +183,11 @@ public class DLNARenderActivity extends AppCompatActivity implements MediaPlayer
                 int volume = ((AudioManager) getApplication().getSystemService(Context.AUDIO_SERVICE)).getStreamVolume(AudioManager.STREAM_MUSIC);
                 notifyRenderVolumeChanged(volume);
             } else if (keyCode == KeyEvent.KEYCODE_ENTER || keyCode == KeyEvent.KEYCODE_DPAD_CENTER) {
-                if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
-                    mMediaPlayer.pause();
+                if (mVideoView != null && mVideoView.isPlaying()) {
+                    mVideoView.pause();
                     notifyTransportStateChanged(TransportState.PAUSED_PLAYBACK);
-                } else if (mMediaPlayer != null) {
-                    mMediaPlayer.start();
+                } else if (mVideoView != null) {
+                    mVideoView.start();
                     notifyTransportStateChanged(TransportState.PLAYING);
                 }
             }
@@ -272,34 +230,4 @@ public class DLNARenderActivity extends AppCompatActivity implements MediaPlayer
         }
     }
 
-    @Override
-    public void onVideoSizeChanged(MediaPlayer mediaPlayer, int i, int i1) {
-        Log.d(TAG, "onVideoSizeChanged: i: " + i + " i1: " + i1);
-    }
-
-    @Override
-    public void onBufferingUpdate(MediaPlayer mediaPlayer, int i) {
-        Log.d(TAG, "onBufferingUpdate: " + i);
-    }
-
-    @Override
-    public void onCompletion(MediaPlayer mediaPlayer) {
-        Log.d(TAG, "onCompletion: release MediaPlayer =  " + System.currentTimeMillis());
-        mediaPlayer.release();
-        finish();
-    }
-
-    @Override
-    public void onPrepared(MediaPlayer mediaPlayer) {
-        Log.d(TAG, "onPrepared: MediaPlayer start  =  " + System.currentTimeMillis());
-        mMediaPlayer.start();
-        mProgressBar.setVisibility(View.INVISIBLE);
-        notifyTransportStateChanged(TransportState.PLAYING);
-    }
-
-
-    @Override
-    public boolean onError(MediaPlayer mediaPlayer, int i, int i1) {
-        return true;
-    }
 }

@@ -5,6 +5,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
+import com.android.zxkj.dlna.dmr.widget.VideoView;
 import com.google.android.exoplayer2.ExoPlayer;
 
 public interface IDLNARenderControl {
@@ -25,11 +26,11 @@ public interface IDLNARenderControl {
     // -------------------------------------------------------------------------------------------
     final class VideoViewRenderControl implements IDLNARenderControl {
 
-        private final MediaPlayer videoView;
+        private final VideoView videoView;
 
         private final Handler mHandler = new Handler(Looper.getMainLooper());
 
-        public VideoViewRenderControl(MediaPlayer videoView) {
+        public VideoViewRenderControl(VideoView videoView) {
             this.videoView = videoView;
         }
 
@@ -50,7 +51,7 @@ public interface IDLNARenderControl {
 
         @Override
         public void stop() {
-            videoView.stop();
+//            videoView;
         }
 
         @Override

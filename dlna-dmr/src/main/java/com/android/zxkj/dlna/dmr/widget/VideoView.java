@@ -10,6 +10,7 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.MediaController;
 import android.widget.RelativeLayout;
@@ -18,7 +19,7 @@ import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class VideoView extends SurfaceView implements MediaController.MediaPlayerControl {
+public class VideoView extends SurfaceView implements MediaController.MediaPlayerControl,SurfaceHolder.Callback {
 
     private static final String TAG = "VideoView";
 
@@ -41,6 +42,10 @@ public class VideoView extends SurfaceView implements MediaController.MediaPlaye
         this(context, null);
     }
 
+    public VideoView(Context context, AttributeSet attrs, int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
+        init();
+    }
     public VideoView(Context context, AttributeSet attrs) {
         super(context, attrs);
         init();
@@ -51,35 +56,37 @@ public class VideoView extends SurfaceView implements MediaController.MediaPlaye
         setFocusable(true);
         setFocusableInTouchMode(true);
         requestFocus();
-        getHolder().addCallback(new SurfaceHolder.Callback() {
-            @Override
-            public void surfaceCreated(SurfaceHolder holder) {
-                mSurfaceHolder = holder;
-                openVideo();
-                updateProgress();
-            }
-
-            @Override
-            public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {//此处回调width, height为View尺寸大小
-                mSurfaceHeight = height;
-                mSurfaceWidth = width;
-                if (mMediaPlayer != null && isPrepared) {
-                    initPosition();
-                    mMediaPlayer.start();//开始播放
-
-                    //开启面板
-                }
-            }
-
-            @Override
-            public void surfaceDestroyed(SurfaceHolder holder) {
-                mSurfaceHolder = null;
-                //隐藏面板
-                releasePlayer();
-                mTimer.cancel();
-            }
-        });
+        Log.d(TAG, "init: ");
+        getHolder().addCallback(this);
     }
+
+    @Override
+    public void surfaceCreated(SurfaceHolder holder) {
+        Log.d(TAG, "surfaceCreated: ");
+        mSurfaceHolder = holder;
+        openVideo();
+        updateProgress();
+    }
+
+    @Override
+    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {//此处回调width, height为View尺寸大小
+        Log.d(TAG, "surfaceChanged: height = " + height + " width = " + width);
+        mSurfaceHeight = height;
+        mSurfaceWidth = width;
+        if (mMediaPlayer != null && isPrepared) {
+            initPosition();
+            mMediaPlayer.start();//开始播放
+        }
+    }
+
+    @Override
+    public void surfaceDestroyed(SurfaceHolder holder) {
+        mSurfaceHolder = null;
+        //隐藏面板
+        releasePlayer();
+        mTimer.cancel();
+    }
+
 
     /**
      * 初始化最初位置
@@ -93,6 +100,7 @@ public class VideoView extends SurfaceView implements MediaController.MediaPlaye
 
     private void openVideo() {
         if (mUri == null || mSurfaceHolder == null) {
+            Log.d(TAG, "openVideo: mUri == null || mSurfaceHolder == null");
             return;
         }
         isPrepared = false;//没有准备完成
@@ -104,7 +112,8 @@ public class VideoView extends SurfaceView implements MediaController.MediaPlaye
             mMediaPlayer.setDisplay(mSurfaceHolder);
             mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
             mMediaPlayer.setScreenOnWhilePlaying(true);//播放时屏幕一直亮着
-            mMediaPlayer.prepareAsync();//异步准备
+//            mMediaPlayer.prepareAsync();//异步准备
+            mMediaPlayer.prepare(); // 同步准备
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -167,7 +176,8 @@ public class VideoView extends SurfaceView implements MediaController.MediaPlaye
     public void fitVideoSize() {
         float rateY = 1;//高不变
         float rateX = mVideoWidth * 1.f / mVideoHeight;
-        changeVideoFitSize(mVideoWidth, mVideoHeight, mSurfaceWidth, mSurfaceHeight, rateX, rateY);
+        fitVideoSize(mVideoWidth, mVideoHeight, mSurfaceWidth, mSurfaceHeight);
+//        changeVideoFitSize(mVideoWidth, mVideoHeight, mSurfaceWidth, mSurfaceHeight, rateX, rateY);
     }
 
 
@@ -179,7 +189,8 @@ public class VideoView extends SurfaceView implements MediaController.MediaPlaye
         float rateX = W / mVideoWidth;//高不变
         //W:H =16:9 ------ W= 16/9*H
 
-        changeVideoFitSize(mVideoWidth, mVideoHeight, mSurfaceWidth, mSurfaceHeight, rateX, rateY);
+        fitVideoSize(mVideoWidth, mVideoHeight, mSurfaceWidth, mSurfaceHeight);
+//        changeVideoFitSize(mVideoWidth, mVideoHeight, mSurfaceWidth, mSurfaceHeight, rateX, rateY);
     }
 
     public void fitSize(float rate) {
@@ -196,12 +207,14 @@ public class VideoView extends SurfaceView implements MediaController.MediaPlaye
         //W:H =4:3 ------ W= 4/3*H
         float W = rate * mSurfaceHeight;
         float rateX = W / mSurfaceWidth;//高不变
-        changeVideoFitSize(mVideoWidth, mVideoHeight, mSurfaceWidth, mSurfaceHeight, rateX, rateY);
+        fitVideoSize(mVideoWidth, mVideoHeight, mSurfaceWidth, mSurfaceHeight);
+//        changeVideoFitSize(mVideoWidth, mVideoHeight, mSurfaceWidth, mSurfaceHeight, rateX, rateY);
     }
 
 
     public void changeVideoSize(float rateX, float rateY) {
-        changeVideoFitSize(mVideoWidth, mVideoHeight, mSurfaceWidth, mSurfaceHeight, rateX, rateY);
+        fitVideoSize(mVideoWidth, mVideoHeight, mSurfaceWidth, mSurfaceHeight);
+//        changeVideoFitSize(mVideoWidth, mVideoHeight, mSurfaceWidth, mSurfaceHeight, rateX, rateY);
     }
 
     public void fitVideoSize(
@@ -215,8 +228,9 @@ public class VideoView extends SurfaceView implements MediaController.MediaPlaye
         surfaceW = (int) (ratio * surfaceH);
 
         //无法直接设置视频尺寸，将计算出的视频尺寸设置到surfaceView 让视频自动填充。
-        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(surfaceW, surfaceH);
-        params.addRule(13);
+        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(surfaceW, surfaceH);
+
+//        params.addRule(13);
         setLayoutParams(params);
     }
 
@@ -283,7 +297,7 @@ public class VideoView extends SurfaceView implements MediaController.MediaPlaye
     /**
      * 释放播放器
      */
-    private void releasePlayer() {
+    public void releasePlayer() {
         Log.e(TAG, "releasePlayer: " + mUri.getPath());
         if (mMediaPlayer != null) {
             mMediaPlayer.reset();
@@ -445,19 +459,19 @@ public class VideoView extends SurfaceView implements MediaController.MediaPlaye
 
 
     private void updateProgress() {
-        mTimer.schedule(new TimerTask() {
-            public void run() {
-                if (mMediaPlayer == null) {
-                    return;
-                }
-                int duration = mMediaPlayer.getDuration();//获取总时长
-                int currentPosition = mMediaPlayer.getCurrentPosition();//获取当前播放了多少
-                int per_100 = (int) (currentPosition * 1.0 / duration * 100);
-                if (mOnProgressChanged != null) {
-                    post(() -> mOnProgressChanged.onChange(per_100,currentPosition));
-                }
-            }
-        }, 0, 1000);
+//        mTimer.schedule(new TimerTask() {
+//            public void run() {
+//                if (mMediaPlayer == null) {
+//                    return;
+//                }s
+//                int duration = mMediaPlayer.getDuration();//获取总时长
+//                int currentPosition = mMediaPlayer.getCurrentPosition();//获取当前播放了多少
+//                int per_100 = (int) (currentPosition * 1.0 / duration * 100);
+//                if (mOnProgressChanged != null) {
+//                    post(() -> mOnProgressChanged.onChange(per_100,currentPosition));
+//                }
+//            }
+//        }, 0, 1000);
     }
 
 
