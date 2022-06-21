@@ -4,4 +4,5 @@ import tv.danmaku.ijk.media.player.IMediaPlayer;
 
 public interface ZxineVideoListener {
     public void onPrepared(IMediaPlayer iMediaPlayer);
+    public void onBufferingUpdate(IMediaPlayer iMediaPlayer, int pre);
 }

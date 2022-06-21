@@ -52,23 +52,20 @@ public class DLNARenderActivity extends AppCompatActivity {
     private static final String KEY_EXTRA_CURRENT_URI = "Renderer.KeyExtra.CurrentUri";
     private static final String TAG = "DLNARenderActivity";
     public static void startActivity(Context context, String currentURI) {
-//        Log.i(TAG, "startActivity", new Exception());
         Intent intent = new Intent(context, DLNARenderActivity.class);
         intent.putExtra(KEY_EXTRA_CURRENT_URI, currentURI);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); // start from service content,should add 'FLAG_ACTIVITY_NEW_TASK' flag.
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         context.startActivity(intent);
     }
 
     private final UnsignedIntegerFourBytes INSTANCE_ID = new UnsignedIntegerFourBytes(0);
 
-//    private PlayerView mVideoView;
-//    private SimpleExoPlayer mPlayer;
     private ProgressBar mProgressBar;
+
     private DLNARendererService mRendererService;
 
     private ZxineVideoView mVideoView;
 
-//    private StandardGSYVideoPlayer mVideoView;
     private MyImageView mImageView;
 
     private final ZxineVideoListener mZxineVideoListener = new ZxineVideoListener() {
@@ -76,45 +73,12 @@ public class DLNARenderActivity extends AppCompatActivity {
         public void onPrepared(IMediaPlayer iMediaPlayer) {
             mVideoView.start();
         }
-    };
 
-//    private final Player.EventListener mPlayerListenner = new Player.EventListener() {
-//        @Override
-//        public void onPlayerError(ExoPlaybackException error) {
-//            Player.EventListener.super.onPlayerError(error);
-//            Log.d(TAG, error.toString());
-//            mProgressBar.setVisibility(View.INVISIBLE);
-//            notifyTransportStateChanged(TransportState.STOPPED);
-//            finish();
-//        }
-//
-//        @Override
-//        public void onPlaybackStateChanged(int state) {
-//            Player.EventListener.super.onPlaybackStateChanged(state);
-//
-//            switch (state) {
-//                case ExoPlayer.STATE_IDLE: //播放器已实例化，但尚未准备就绪。
-//                    break;
-//                case ExoPlayer.STATE_READY: //播放器可以立即从当前位置开始播放
-//                    Log.d(TAG, "EXOPlayer start play");
-//                    mProgressBar.setVisibility(View.INVISIBLE);
-//                    notifyTransportStateChanged(TransportState.PLAYING);
-//                    break;
-//                case ExoPlayer.STATE_ENDED: //播放器已完成媒体播放。
-//                    notifyTransportStateChanged(TransportState.STOPPED);
-//                    finish();
-//                    break;
-//            }
-//        }
-//
-//        @Override
-//        public void onEvents(Player player, Player.Events events) {
-//            Player.EventListener.super.onEvents(player, events);
-//
-//            Log.d(TAG, events.toString());
-//        }
-//
-//    };
+        @Override
+        public void onBufferingUpdate(IMediaPlayer iMediaPlayer, int pre) {
+            Log.d(TAG, "onBufferingUpdate: " + pre);
+        }
+    };
 
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
         @Override
@@ -134,141 +98,25 @@ public class DLNARenderActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dlna_renderer);
 
+        initCompent();
+        bindService(new Intent(this, DLNARendererService.class), mServiceConnection, Service.BIND_AUTO_CREATE);
+        openMedia(getIntent());
+    }
+
+    private void initCompent() {
+        mProgressBar = findViewById(R.id.video_progress);
+
         mImageView = findViewById(R.id.image_view);
         mImageView.setVisibility(View.INVISIBLE);
 
         mVideoView = findViewById(R.id.video_view);
         mVideoView.setVideoListener(mZxineVideoListener);
+        mVideoView.setLoaddingView(mProgressBar);
+
         // 不开启硬解码
         mVideoView.setEnableMediaCodec(false);
-
-        mProgressBar = findViewById(R.id.video_progress);
-        bindService(new Intent(this, DLNARendererService.class), mServiceConnection, Service.BIND_AUTO_CREATE);
-        openMedia(getIntent());
     }
 
-    void initGSYVideo() {
-//        mVideoView.getBackButton().setVisibility(View.VISIBLE);
-//        mVideoView.setVideoAllCallBack(new VideoAllCallBack() {
-//            @Override
-//            public void onStartPrepared(String url, Object... objects) {
-//                Log.d(TAG, "EXOPlayer start play");
-//                mProgressBar.setVisibility(View.INVISIBLE);
-//                // 设置播放状态
-//                notifyTransportStateChanged(TransportState.PLAYING);
-//            }
-//
-//            @Override
-//            public void onPrepared(String url, Object... objects) {
-//
-//            }
-//
-//            @Override
-//            public void onClickStartIcon(String url, Object... objects) {
-//            }
-//
-//            @Override
-//            public void onClickStartError(String url, Object... objects) {
-//
-//            }
-//
-//
-//            @Override
-//            public void onClickStop(String url, Object... objects) {
-//
-//            }
-//
-//            @Override
-//            public void onClickStopFullscreen(String url, Object... objects) {
-//
-//            }
-//
-//            @Override
-//            public void onClickResume(String url, Object... objects) {
-//
-//            }
-//
-//            @Override
-//            public void onClickResumeFullscreen(String url, Object... objects) {
-//
-//            }
-//
-//            @Override
-//            public void onClickSeekbar(String url, Object... objects) {
-//
-//            }
-//
-//            @Override
-//            public void onClickSeekbarFullscreen(String url, Object... objects) {
-//
-//            }
-//
-//            @Override
-//            public void onAutoComplete(String url, Object... objects) {
-//
-//            }
-//
-//            @Override
-//            public void onComplete(String url, Object... objects) {
-//
-//            }
-//
-//            @Override
-//            public void onEnterFullscreen(String url, Object... objects) {
-//
-//            }
-//
-//            @Override
-//            public void onQuitFullscreen(String url, Object... objects) {
-//
-//            }
-//
-//            @Override
-//            public void onQuitSmallWidget(String url, Object... objects) {
-//
-//            }
-//
-//            @Override
-//            public void onEnterSmallWidget(String url, Object... objects) {
-//
-//            }
-//
-//            @Override
-//            public void onTouchScreenSeekVolume(String url, Object... objects) {
-//
-//            }
-//
-//            @Override
-//            public void onTouchScreenSeekPosition(String url, Object... objects) {
-//
-//            }
-//
-//            @Override
-//            public void onTouchScreenSeekLight(String url, Object... objects) {
-//
-//            }
-//
-//            @Override
-//            public void onPlayError(String url, Object... objects) {
-//
-//            }
-//
-//            @Override
-//            public void onClickStartThumb(String url, Object... objects) {
-//
-//            }
-//
-//            @Override
-//            public void onClickBlank(String url, Object... objects) {
-//
-//            }
-//
-//            @Override
-//            public void onClickBlankFullscreen(String url, Object... objects) {
-//
-//            }
-//        });
-    }
 
     @Override
     protected void onNewIntent(Intent intent) {
@@ -285,33 +133,14 @@ public class DLNARenderActivity extends AppCompatActivity {
             // 这个根据Uri 来判断播放音视频，还是播放图片
             if (currentUri.endsWith(".png") || currentUri.endsWith(".jpg")) {
                 Log.d(TAG, "open Media Uir: "+ currentUri);
-                mVideoView.setVisibility(View.INVISIBLE);
                 mImageView.setVisibility(View.VISIBLE);
                 mProgressBar.setVisibility(View.INVISIBLE);
                 mImageView.setImageURL(currentUri);
             } else {
                 Log.d(TAG, "open Media Uir: "+ currentUri);
-                mImageView.setVisibility(View.INVISIBLE);
-                mVideoView.setVisibility(View.VISIBLE);
 
                 mVideoView.setPath(currentUri);
-                try {
-                    mVideoView.load();
-                } catch (IOException e) {
-                    Toast.makeText(this, "播放失败", Toast.LENGTH_SHORT).show();
-                    e.printStackTrace();
-                }
-//                mVideoView.setUp(currentUri,false,"");
-//                mVideoView.startPlayLogic();
             }
-
-            // 设置媒体信息
-//            MediaItem mediaItem =  MediaItem.fromUri(currentUri);
-//            mPlayer.setMediaItem(mediaItem);
-//            // 准备播放
-//            mPlayer.prepare();
-//            // 播放
-//            mPlayer.play();
         } else {
             Toast.makeText(this, "没有找到有效的视频地址，请检查...", Toast.LENGTH_SHORT).show();
             finish();
