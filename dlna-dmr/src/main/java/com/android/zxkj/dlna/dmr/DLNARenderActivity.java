@@ -251,7 +251,7 @@ public class DLNARenderActivity extends AppCompatActivity implements MediaPlayer
                                             TransportAction.Next, TransportAction.Previous })
 
                     );
-
+//
 //            try {
 //                Thread.sleep(1000);
 //            } catch (InterruptedException e) {
@@ -274,7 +274,7 @@ public class DLNARenderActivity extends AppCompatActivity implements MediaPlayer
 
     @Override
     public void onVideoSizeChanged(MediaPlayer mediaPlayer, int i, int i1) {
-        Log.d(TAG, "onVideoSizeChanged: i: " + i + " i1: " + i1);
+        Log.d(TAG, "onVideoSizeChanged: width: " + i + " height: " + i1);
     }
 
     @Override

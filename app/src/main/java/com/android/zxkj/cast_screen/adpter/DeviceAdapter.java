@@ -3,6 +3,7 @@ package com.android.zxkj.cast_screen.adpter;
 import android.app.Activity;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
@@ -19,6 +20,7 @@ import java.util.List;
 
 public class DeviceAdapter extends RecyclerView.Adapter<DeviceHolder> implements OnDeviceRegistryListener {
 
+    private static final String TAG = "DeviceAdapter";
     private final LayoutInflater mLayoutInflater;
     private final Handler mHandler = new Handler(Looper.getMainLooper());
     private final List<Device<?, ?, ?>> mDeviceList = new ArrayList<>();
@@ -74,6 +76,7 @@ public class DeviceAdapter extends RecyclerView.Adapter<DeviceHolder> implements
 
     @Override
     public void onDeviceAdded(Device<?, ?, ?> device) {
+        Log.d(TAG, "onDeviceAdded: " + device.getDetails().getFriendlyName());
         if (!mDeviceList.contains(device)) {
             mDeviceList.add(device);
             if (Thread.currentThread() != Looper.getMainLooper().getThread()) {
@@ -86,10 +89,12 @@ public class DeviceAdapter extends RecyclerView.Adapter<DeviceHolder> implements
 
     @Override
     public void onDeviceUpdated(Device<?, ?, ?> device) {
+        Log.d(TAG, "onDeviceUpdated: " + device.getDetails().getFriendlyName());
     }
 
     @Override
     public void onDeviceRemoved(Device<?, ?, ?> device) {
+        Log.d(TAG, "onDeviceRemoved: " + device.getDetails().getFriendlyName());
         if (mDeviceList.contains(device)) {
             mDeviceList.remove(device);
             if (Thread.currentThread() != Looper.getMainLooper().getThread()) {
