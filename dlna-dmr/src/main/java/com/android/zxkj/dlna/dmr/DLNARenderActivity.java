@@ -108,6 +108,12 @@ public class DLNARenderActivity extends AppCompatActivity {
         mProgressBar = findViewById(R.id.video_progress);
 
         mVideoView = findViewById(R.id.video_view);
+        mVideoView.setLoaddingView(mProgressBar);
+        mVideoView.setOnBufferingUpdateListener(pre -> Log.d(TAG, "update: " + pre));
+        mVideoView.setOnStopListener(() -> {
+            Log.d(TAG, "收到了停止播放事件推出界面 ");
+            finish();
+        });
 
         bindService(new Intent(this, DLNARendererService.class), mServiceConnection, Service.BIND_AUTO_CREATE);
 
@@ -156,7 +162,13 @@ public class DLNARenderActivity extends AppCompatActivity {
             } else {
                 mProgressBar.setVisibility(View.INVISIBLE);
                 mImageView.setVisibility(View.GONE);
-
+//                String uri1 = "https://www.cnuseful.com/testdown/video/test.mp4";
+//                String uri1 = "http://vfx.mtime.cn/Video/2019/03/19/mp4/190319125415785691.mp4";
+//                String uri1 = "https://mirror.aarnet.edu.au/pub/TED-talks/911Mothers_2010W-480p.mp4";
+//                String uri1 =  "https://sf1-hscdn-tos.pstatp.com/obj/media-fe/xgplayer_doc_video/mp4/xgplayer-demo-720p.mp4";
+//                String uri1 = "http://vfx.mtime.cn/Video/2019/03/19/mp4/190319222227698228.mp4";
+//                String uri1 =  "https://media.w3.org/2010/05/sintel/trailer.mp4";
+//                String uri1 =   "https://upos-sz-mirrorcos.bilivideo.com/upgcxcode/51/22/738282251/738282251-1-208.mp4?e=ig8euxZM2rNcNbhMhzdVhwdlhzKzhwdVhoNvNC8BqJIzNbfq9rVEuxTEnE8L5F6VnEsSTx0vkX8fqJeYTj_lta53NCM=&uipk=5&nbs=1&deadline=1655817045&gen=playurlv2&os=hwbv&oi=1363604970&trid=64e6b7210ffd4959a8a5b6ede4321264T&mid=0&platform=html5&upsig=d16230c6f35b73de5bc0eaca9281ebe6&uparams=e,uipk,nbs,deadline,gen,os,oi,trid,mid,platform&bvc=vod&nettype=0&bw=343833&orderid=0,1&logo=80000000";
                 mVideoView.setVideoURI(Uri.parse(currentUri));
             }
 

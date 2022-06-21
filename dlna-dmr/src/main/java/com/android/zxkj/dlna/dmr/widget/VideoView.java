@@ -10,6 +10,7 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.MediaController;
@@ -37,6 +38,8 @@ public class VideoView extends SurfaceView implements MediaController.MediaPlaye
     private int mDuration = -1;
     private int mCurrentBufferPer;
     private Timer mTimer;
+
+    private View mLoaddingView;
 
     public VideoView(Context context) {
         this(context, null);
@@ -98,6 +101,15 @@ public class VideoView extends SurfaceView implements MediaController.MediaPlaye
         }
     }
 
+    public void setLoaddingView(View loaddingView) {
+        mLoaddingView = loaddingView;
+    }
+
+    public void showLoaddingView(Boolean isShow) {
+        if (mLoaddingView != null) {
+            mLoaddingView.setVisibility(isShow ? View.VISIBLE : View.INVISIBLE);
+        }
+    }
     private void openVideo() {
         if (mUri == null || mSurfaceHolder == null) {
             Log.d(TAG, "openVideo: mUri == null || mSurfaceHolder == null");
@@ -110,11 +122,14 @@ public class VideoView extends SurfaceView implements MediaController.MediaPlaye
             Log.e(TAG, "openVideo: " + mUri);
             mMediaPlayer.setDataSource(getContext(), mUri);
             mMediaPlayer.setDisplay(mSurfaceHolder);
-            mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-            mMediaPlayer.setScreenOnWhilePlaying(true);//播放时屏幕一直亮着
-//            mMediaPlayer.prepareAsync();//异步准备
-            mMediaPlayer.prepare(); // 同步准备
+            //播放时屏幕一直亮着
+            mMediaPlayer.setScreenOnWhilePlaying(true);
+            // 异步准备
+            mMediaPlayer.prepareAsync();
+
+            showLoaddingView(true);
         } catch (IOException e) {
+            showLoaddingView(false);
             e.printStackTrace();
         }
 
@@ -134,12 +149,14 @@ public class VideoView extends SurfaceView implements MediaController.MediaPlaye
         //准备监听
         mMediaPlayer.setOnPreparedListener(mp -> {
             isPrepared = true;
+            Log.d(TAG, "setOnPreparedListener: ");
             //控制器可用
             if (mOnPreparedListener != null) {//补偿回调
                 mOnPreparedListener.onPrepared(mp);
             }
             if (mVideoWidth != 0 && mVideoHeight != 0) {
                 //开始初始化
+                showLoaddingView(false);
                 initPosition();
                 start();
             }
@@ -147,6 +164,7 @@ public class VideoView extends SurfaceView implements MediaController.MediaPlaye
 
         //完成监听
         mMediaPlayer.setOnCompletionListener(mp -> {
+            Log.d(TAG, "setOnCompletionListener: ");
             //隐藏面板
             start();
             if (mOnCompletionListener != null) {
@@ -155,6 +173,7 @@ public class VideoView extends SurfaceView implements MediaController.MediaPlaye
         });
         //错误监听
         mMediaPlayer.setOnErrorListener((mp, what, extra) -> {
+            Log.d(TAG, "setOnErrorListener: " + extra);
             //隐藏面板
             if (mOnErrorListener != null) {
                 mOnErrorListener.onError(mp, what, extra);
@@ -165,10 +184,27 @@ public class VideoView extends SurfaceView implements MediaController.MediaPlaye
 
         mMediaPlayer.setOnBufferingUpdateListener((mp, pre) -> {
             mCurrentBufferPer = pre;
+            Log.d(TAG, "setOnBufferingUpdateListener: " );
             if (mOnBufferingUpdateListener != null) {
                 mOnBufferingUpdateListener.update(pre);
             }
+        });
 
+        mMediaPlayer.setOnInfoListener((mediaPlayer, i, i1) -> {
+            Log.d(TAG, "setOnInfoListener: " );
+            switch (i) {
+                case MediaPlayer.MEDIA_INFO_BUFFERING_START:
+                    // 显示加载
+                    showLoaddingView(true);
+                    break;
+                case MediaPlayer.MEDIA_INFO_BUFFERING_END:
+                    //　隐藏加载
+                    showLoaddingView(false);
+                    break;
+                default:
+                    break;
+            }
+            return false;
         });
     }
 
@@ -227,9 +263,10 @@ public class VideoView extends SurfaceView implements MediaController.MediaPlaye
 
         surfaceW = (int) (ratio * surfaceH);
 
-        //无法直接设置视频尺寸，将计算出的视频尺寸设置到surfaceView 让视频自动填充。
+        // 无法直接设置视频尺寸，将计算出的视频尺寸设置到surfaceView 让视频自动填充。
         FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(surfaceW, surfaceH);
-
+        // 居中
+        params.gravity = 0x11;
 //        params.addRule(13);
         setLayoutParams(params);
     }
@@ -320,6 +357,9 @@ public class VideoView extends SurfaceView implements MediaController.MediaPlaye
             mMediaPlayer.stop();
             mMediaPlayer.release();
             mMediaPlayer = null;
+            if (mOnStopListener != null) {
+                mOnStopListener.stop();
+            }
         }
     }
 
@@ -373,7 +413,6 @@ public class VideoView extends SurfaceView implements MediaController.MediaPlaye
 
     private void saveProgress() {
         int per = (int) (getCurrentPosition() * 1.f / getDuration() * 100);
-//        VideoDao.newInstance().saveProgress(mUri.getPath(), per);
     }
 
 
@@ -482,7 +521,14 @@ public class VideoView extends SurfaceView implements MediaController.MediaPlaye
     private MediaPlayer.OnPreparedListener mOnPreparedListener;
     private MediaPlayer.OnCompletionListener mOnCompletionListener;
     private MediaPlayer.OnErrorListener mOnErrorListener;
+    private OnStopListener mOnStopListener;
 
+
+
+
+    public void setOnStopListener(OnStopListener onStopListener) {
+        mOnStopListener = onStopListener;
+    }
     public void setOnPreparedListener(MediaPlayer.OnPreparedListener onPreparedListener) {
         mOnPreparedListener = onPreparedListener;
     }
@@ -525,4 +571,8 @@ public class VideoView extends SurfaceView implements MediaController.MediaPlaye
         mOnBufferingUpdateListener = onBufferingUpdateListener;
     }
 
+
+    public interface OnStopListener {
+        public void stop();
+    }
 }

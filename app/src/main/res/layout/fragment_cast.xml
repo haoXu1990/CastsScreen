@@ -38,7 +38,7 @@
             android:layout_height="wrap_content"
             android:background="?android:attr/selectableItemBackground"
             android:padding="2dp"
-            android:text="M3u8: CC"
+            android:text="B站8K"
             tools:ignore="HardcodedText" />
 
         <RadioButton

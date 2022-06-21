@@ -51,7 +51,7 @@ public interface IDLNARenderControl {
 
         @Override
         public void stop() {
-//            videoView;
+            videoView.stopPlay();
         }
 
         @Override
