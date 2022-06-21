@@ -27,8 +27,6 @@ public interface IDLNARenderControl {
 
         private final MediaPlayer videoView;
 
-        private final Handler mHandler = new Handler(Looper.getMainLooper());
-
         public VideoViewRenderControl(MediaPlayer videoView) {
             this.videoView = videoView;
         }
@@ -51,6 +49,7 @@ public interface IDLNARenderControl {
         @Override
         public void stop() {
             videoView.stop();
+            videoView.release();
         }
 
         @Override

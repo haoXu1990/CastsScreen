@@ -212,7 +212,7 @@ public class ControlFragment extends Fragment implements IDisplayDevice, CastFra
               }
 
           } else {
-              mPositionInfo.setText(errMsg);
+//              mPositionInfo.setText(errMsg);
           }
       }));
     };
@@ -225,7 +225,7 @@ public class ControlFragment extends Fragment implements IDisplayDevice, CastFra
                 mVolumeSeekBar.setProgress(integer);
                 mVolumeInfo.setText(String.format("%s/%s", (int) (integer / 100f * maxVolume), maxVolume));
             } else {
-                mVolumeInfo.setText(errMsg);
+//                mVolumeInfo.setText(errMsg);
             }
         }));
     };

@@ -1,6 +1,7 @@
 package com.android.zxkj.dlna.dmr.service;
 
 import android.content.Context;
+import android.util.Log;
 import android.util.Xml;
 
 import com.android.zxkj.dlna.core.utils.CastUtils;
@@ -33,6 +34,7 @@ public class AVTransportController implements IRendererInterface.IAVTransportCon
     private static final TransportAction[] TRANSPORT_ACTION_PLAYING = new TransportAction[]{TransportAction.Stop, TransportAction.Pause, TransportAction.Seek};
     private static final TransportAction[] TRANSPORT_ACTION_PAUSE_PLAYBACK = new TransportAction[]{TransportAction.Play, TransportAction.Seek, TransportAction.Stop};
 
+    private static final String TAG = "AVTransportController";
     private final UnsignedIntegerFourBytes mInstanceId;
     private final Context mApplicationContext;
     private final TransportInfo mTransportInfo = new TransportInfo();
@@ -130,6 +132,8 @@ public class AVTransportController implements IRendererInterface.IAVTransportCon
     }
 
     synchronized public void stop() {
+        Log.d(TAG, "stop:  接收到停止播放指令");
+
         mMediaControl.stop();
     }
 
@@ -152,8 +156,5 @@ public class AVTransportController implements IRendererInterface.IAVTransportCon
     @Override
     public void setRecordQualityMode(String newRecordQualityMode) {
     }
-
-
-
 
 }

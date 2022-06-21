@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.IBinder;
+import android.util.Log;
 
 import androidx.core.content.ContextCompat;
 
@@ -30,8 +31,11 @@ import org.fourthline.cling.model.meta.LocalDevice;
 import org.fourthline.cling.model.meta.LocalService;
 import org.fourthline.cling.model.meta.ManufacturerDetails;
 import org.fourthline.cling.model.meta.ModelDetails;
+import org.fourthline.cling.model.meta.RemoteDevice;
 import org.fourthline.cling.model.types.UDADeviceType;
 import org.fourthline.cling.model.types.UDN;
+import org.fourthline.cling.registry.Registry;
+import org.fourthline.cling.registry.RegistryListener;
 import org.fourthline.cling.support.avtransport.lastchange.AVTransportLastChangeParser;
 import org.fourthline.cling.support.lastchange.LastChange;
 import org.fourthline.cling.support.lastchange.LastChangeAwareServiceManager;
@@ -47,10 +51,12 @@ import java.util.UUID;
 
 public class DLNARendererService extends AndroidUpnpServiceImpl {
 
+
     public static void startService(Context context) {
         context.getApplicationContext().startService(new Intent(context, DLNARendererService.class));
     }
 
+    private static final String TAG = "DLNARendererService";
     private final RenderControlManager mRenderControlManager = new RenderControlManager();
 
     private LastChange mAvTransportLastChange;
@@ -77,6 +83,7 @@ public class DLNARendererService extends AndroidUpnpServiceImpl {
         mRenderControlManager.addControl(new AVTransportController(getApplicationContext(), new IDLNARenderControl.DefaultRenderControl()));
         try {
             mRendererDevice = createRendererDevice(getApplicationContext(), ipAddress);
+
             upnpService.getRegistry().addDevice(mRendererDevice);
         } catch (Exception e) {
             e.printStackTrace();
@@ -97,10 +104,12 @@ public class DLNARendererService extends AndroidUpnpServiceImpl {
     @Override
     public void onDestroy() {
         if (mRendererDevice != null && upnpService != null && upnpService.getRegistry() != null) {
+            Log.d(TAG, "onDestroy: ");
             upnpService.getRegistry().removeDevice(mRendererDevice);
         }
         super.onDestroy();
     }
+
 
     public LastChange getAvTransportLastChange() {
         return mAvTransportLastChange;
@@ -109,11 +118,6 @@ public class DLNARendererService extends AndroidUpnpServiceImpl {
     public LastChange getAudioControlLastChange() {
         return mAudioControlLastChange;
     }
-
-//    public PropertyChangeSupport getPropertyChangeSupport1() {
-//        return get;
-//    }
-
 
     public void setRenderControl(IDLNARenderControl control) {
         mRenderControlManager.addControl(new AVTransportController(getApplicationContext(), control));

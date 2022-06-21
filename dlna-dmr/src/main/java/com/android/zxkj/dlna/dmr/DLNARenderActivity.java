@@ -110,6 +110,13 @@ public class DLNARenderActivity extends AppCompatActivity implements MediaPlayer
         mMediaPlayer.setOnCompletionListener(this);
         mMediaPlayer.setOnBufferingUpdateListener(this);
         mMediaPlayer.setOnVideoSizeChangedListener(this);
+        mMediaPlayer.setOnInfoListener(new MediaPlayer.OnInfoListener() {
+            @Override
+            public boolean onInfo(MediaPlayer mediaPlayer, int i, int i1) {
+                return false;
+            }
+        });
+
         mMediaPlayer.setOnErrorListener(this);
 
         mSurfaceView = findViewById(R.id.my_surfaceView);
@@ -196,7 +203,7 @@ public class DLNARenderActivity extends AppCompatActivity implements MediaPlayer
                 try {
                     // 准备播放
                     mMediaPlayer.setDataSource(currentUri);
-                    mMediaPlayer.prepare();
+                    mMediaPlayer.prepareAsync();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -300,6 +307,7 @@ public class DLNARenderActivity extends AppCompatActivity implements MediaPlayer
 
     @Override
     public boolean onError(MediaPlayer mediaPlayer, int i, int i1) {
+        Log.d(TAG, "onError: i = " + i + "i1 = " + i1 );
         return true;
     }
 }

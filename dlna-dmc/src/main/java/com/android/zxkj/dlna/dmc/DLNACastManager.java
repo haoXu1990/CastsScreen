@@ -10,6 +10,7 @@ import android.content.ServiceConnection;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -50,6 +51,7 @@ public final class DLNACastManager implements ICastInterface.IControl, ICastInte
     public static final ServiceType SERVICE_RENDERING_CONTROL = new UDAServiceType("RenderingControl");
     public static final ServiceType SERVICE_CONNECTION_MANAGER = new UDAServiceType("ConnectionManager");
     public static final ServiceType SERVICE_CONTENT_DIRECTORY = new UDAServiceType("ContentDirectory");
+    private static final String TAG = "DLNACastManager";
 
     private static class Holder {
         private static final DLNACastManager INSTANCE = new DLNACastManager();
@@ -114,7 +116,7 @@ public final class DLNACastManager implements ICastInterface.IControl, ICastInte
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
-
+            Log.d(TAG, "onServiceDisconnected: " + name.getPackageName());
         }
     };
 
