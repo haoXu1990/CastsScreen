@@ -6,6 +6,7 @@ import android.os.Looper;
 import android.util.Log;
 
 import com.google.android.exoplayer2.ExoPlayer;
+import com.pili.pldroid.player.widget.PLVideoView;
 
 public interface IDLNARenderControl {
     void play();
@@ -25,11 +26,11 @@ public interface IDLNARenderControl {
     // -------------------------------------------------------------------------------------------
     final class VideoViewRenderControl implements IDLNARenderControl {
 
-        private final MediaPlayer videoView;
+        private final PLVideoView videoView;
 
         private final Handler mHandler = new Handler(Looper.getMainLooper());
 
-        public VideoViewRenderControl(MediaPlayer videoView) {
+        public VideoViewRenderControl(PLVideoView videoView) {
             this.videoView = videoView;
         }
 

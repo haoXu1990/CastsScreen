@@ -40,6 +40,10 @@ import com.google.android.exoplayer2.mediacodec.MediaCodecSelector;
 import com.google.android.exoplayer2.mediacodec.MediaCodecUtil;
 import com.google.android.exoplayer2.mediacodec.MediaFormatUtil;
 import com.google.android.exoplayer2.ui.PlayerView;
+import com.pili.pldroid.player.AVOptions;
+import com.pili.pldroid.player.PLOnErrorListener;
+import com.pili.pldroid.player.PLOnPreparedListener;
+import com.pili.pldroid.player.widget.PLVideoView;
 
 import org.eclipse.jetty.util.StringUtil;
 import org.fourthline.cling.model.types.UnsignedIntegerFourBytes;
@@ -56,7 +60,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-public class DLNARenderActivity extends AppCompatActivity implements MediaPlayer.OnVideoSizeChangedListener, MediaPlayer.OnBufferingUpdateListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener {
+public class DLNARenderActivity extends AppCompatActivity implements PLOnPreparedListener, PLOnErrorListener {
     private static final String KEY_EXTRA_CURRENT_URI = "Renderer.KeyExtra.CurrentUri";
     private static final String TAG = "DLNARenderActivity";
     public static void startActivity(Context context, String currentURI) {
@@ -73,11 +77,8 @@ public class DLNARenderActivity extends AppCompatActivity implements MediaPlayer
     private DLNARendererService mRendererService;
     private MyImageView mImageView;
 
-    private SurfaceHolder mSurfaceHolder;
-    private SurfaceView mSurfaceView;
-    private MediaPlayer mMediaPlayer;
 
-    private VideoView mVideoView;
+    private PLVideoView mVideoView;
 
 
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
@@ -85,7 +86,7 @@ public class DLNARenderActivity extends AppCompatActivity implements MediaPlayer
         public void onServiceConnected(ComponentName name, IBinder service) {
             Log.d(TAG, "onServiceConnected: ");
             mRendererService = ((DLNARendererService.RendererServiceBinder) service).getRendererService();
-            mRendererService.setRenderControl(new IDLNARenderControl.VideoViewRenderControl(mMediaPlayer));
+            mRendererService.setRenderControl(new IDLNARenderControl.VideoViewRenderControl(mVideoView));
         }
 
         @Override
@@ -103,56 +104,37 @@ public class DLNARenderActivity extends AppCompatActivity implements MediaPlayer
 
         mImageView = findViewById(R.id.my_imageView);
         mImageView.setVisibility(View.GONE);
+
         mProgressBar = findViewById(R.id.video_progress);
 
-        mMediaPlayer = new MediaPlayer();
-        mMediaPlayer.setOnPreparedListener(this);
-        mMediaPlayer.setOnCompletionListener(this);
-        mMediaPlayer.setOnBufferingUpdateListener(this);
-        mMediaPlayer.setOnVideoSizeChangedListener(this);
-        mMediaPlayer.setOnErrorListener(this);
 
-        mSurfaceView = findViewById(R.id.my_surfaceView);
-        mSurfaceHolder = mSurfaceView.getHolder();
-        mSurfaceHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
-        mSurfaceHolder.addCallback(new SurfaceHolder.Callback() {
-            @Override
-            public void surfaceCreated(@NonNull SurfaceHolder surfaceHolder) {
-                Log.d(TAG, "surfaceCreated: " + System.currentTimeMillis());
-                mMediaPlayer.setDisplay(mSurfaceView.getHolder());
-            }
+        AVOptions options = new AVOptions();
+        options.setInteger(AVOptions.KEY_PREPARE_TIMEOUT, 10 * 1000);
+        options.setInteger(AVOptions.KEY_SEEK_MODE, 1);
+        options.setInteger(AVOptions.KEY_LIVE_STREAMING,  0);
+        options.setInteger(AVOptions.KEY_PREFER_FORMAT, 2);
 
-            @Override
-            public void surfaceChanged(@NonNull SurfaceHolder surfaceHolder, int i, int i1, int i2) {
-                Log.d(TAG, "surfaceChanged: " + System.currentTimeMillis());
-            }
+        options.setInteger(AVOptions.KEY_CACHE_FILE_NAME_ENCODE,  0);
 
-            @Override
-            public void surfaceDestroyed(@NonNull SurfaceHolder surfaceHolder) {
-                Log.d(TAG, "surfaceDestroyed: " + System.currentTimeMillis());
-            }
-        });
+        options.setInteger(AVOptions.KEY_MEDIACODEC, AVOptions.MEDIA_CODEC_SW_DECODE);
+        options.setInteger(AVOptions.KEY_CACHE_BUFFER_DURATION, 200);
+        options.setInteger(AVOptions.KEY_CACHE_BUFFER_DURATION_SPEED_ADJUST, 0);
+        options.setInteger(AVOptions.KEY_START_POSITION, 0);
+
+
+        mVideoView = findViewById(R.id.video_view);
+        mVideoView.setDisplayAspectRatio(PLVideoView.ASPECT_RATIO_ORIGIN);
+        mVideoView.setBufferingIndicator(mProgressBar);
+        mVideoView.setOnPreparedListener(this);
+        mVideoView.setOnErrorListener(this);
+
+        mVideoView.setAVOptions(options);
 
         bindService(new Intent(this, DLNARendererService.class), mServiceConnection, Service.BIND_AUTO_CREATE);
+
         // 在这里上报一下当前的状态
         openMedia(getIntent());
     }
-
-    public MediaCodec createBestCodec() throws IOException {
-        MediaCodecList list = new MediaCodecList(MediaCodecList.REGULAR_CODECS);
-        android.media.MediaCodecInfo[] codecs = list.getCodecInfos();
-        for (android.media.MediaCodecInfo codec : codecs) {
-            if (!codec.isEncoder()) {
-                String name = codec.getName();
-                if (name.startsWith("OMX.google") && name.contains("hevc")) {
-                    Log.e(TAG,"找到合适的解码器");
-                    return MediaCodec.createByCodecName(codec.getName());
-                }
-            }
-        }
-        return MediaCodec.createDecoderByType(MediaFormat.MIMETYPE_VIDEO_HEVC);
-    }
-
 
     @Override
     protected void onNewIntent(Intent intent) {
@@ -172,34 +154,15 @@ public class DLNARenderActivity extends AppCompatActivity implements MediaPlayer
             // 暂时没有找到专门的图片渲染事件，这里是用的 AVTranport,
             // 先根据后缀判断以下类型
             if (currentUri.endsWith(".jpg") || currentUri.endsWith(".png")) {
-                if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
-                    mMediaPlayer.reset();
-                }
-
-                mSurfaceView.setVisibility(View.INVISIBLE);
 
                 mImageView.setImageURL(currentUri);
                 mImageView.setVisibility(View.VISIBLE);
                 mProgressBar.setVisibility(View.INVISIBLE);
             } else {
-                if (mSurfaceView.getVisibility() != View.VISIBLE) {
-                    mSurfaceView.setVisibility(View.VISIBLE);
-                }
+                mImageView.setVisibility(View.GONE);
+                mVideoView.setVideoPath(currentUri);
+//                mVideoView.start();
 
-                if (mMediaPlayer != null) {
-                    Log.d(TAG, "openMedia:  isPlaying, reset");
-                    mMediaPlayer.reset();
-                }
-
-                mImageView.setVisibility(View.GONE);;
-
-                try {
-                    // 准备播放
-                    mMediaPlayer.setDataSource(currentUri);
-                    mMediaPlayer.prepare();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
             }
 
         } else {
@@ -210,7 +173,7 @@ public class DLNARenderActivity extends AppCompatActivity implements MediaPlayer
 
     @Override
     protected void onDestroy() {
-        if (mMediaPlayer != null) mMediaPlayer.release();
+        if (mVideoView != null) mVideoView.stopPlayback();
         notifyTransportStateChanged(TransportState.STOPPED);
         Log.d(TAG, "onDestroy:  begin unbindService");
         unbindService(mServiceConnection);
@@ -225,11 +188,11 @@ public class DLNARenderActivity extends AppCompatActivity implements MediaPlayer
                 int volume = ((AudioManager) getApplication().getSystemService(Context.AUDIO_SERVICE)).getStreamVolume(AudioManager.STREAM_MUSIC);
                 notifyRenderVolumeChanged(volume);
             } else if (keyCode == KeyEvent.KEYCODE_ENTER || keyCode == KeyEvent.KEYCODE_DPAD_CENTER) {
-                if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
-                    mMediaPlayer.pause();
+                if (mVideoView != null && mVideoView.isPlaying()) {
+                    mVideoView.pause();
                     notifyTransportStateChanged(TransportState.PAUSED_PLAYBACK);
-                } else if (mMediaPlayer != null) {
-                    mMediaPlayer.start();
+                } else if (mVideoView != null) {
+                    mVideoView.start();
                     notifyTransportStateChanged(TransportState.PLAYING);
                 }
             }
@@ -273,33 +236,14 @@ public class DLNARenderActivity extends AppCompatActivity implements MediaPlayer
     }
 
     @Override
-    public void onVideoSizeChanged(MediaPlayer mediaPlayer, int i, int i1) {
-        Log.d(TAG, "onVideoSizeChanged: width: " + i + " height: " + i1);
+    public void onPrepared(int i) {
+        Log.d(TAG, "onPrepared: ");
+//        mVideoView.start();
     }
 
     @Override
-    public void onBufferingUpdate(MediaPlayer mediaPlayer, int i) {
-        Log.d(TAG, "onBufferingUpdate: " + i);
-    }
-
-    @Override
-    public void onCompletion(MediaPlayer mediaPlayer) {
-        Log.d(TAG, "onCompletion: release MediaPlayer =  " + System.currentTimeMillis());
-        mediaPlayer.release();
-        finish();
-    }
-
-    @Override
-    public void onPrepared(MediaPlayer mediaPlayer) {
-        Log.d(TAG, "onPrepared: MediaPlayer start  =  " + System.currentTimeMillis());
-        mMediaPlayer.start();
-        mProgressBar.setVisibility(View.INVISIBLE);
-        notifyTransportStateChanged(TransportState.PLAYING);
-    }
-
-
-    @Override
-    public boolean onError(MediaPlayer mediaPlayer, int i, int i1) {
-        return true;
+    public boolean onError(int i, Object o) {
+        Log.d(TAG, "onError: i = " + i);
+        return false;
     }
 }
