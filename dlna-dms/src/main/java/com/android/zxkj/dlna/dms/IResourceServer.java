@@ -43,7 +43,9 @@ public interface IResourceServer {
 
             @Override
             public IResourceServer getInstance() {
-                // 这里就不判断了，目前只用 NanoHttp
+                if (useJetty) {
+                    return new JettyHttpServer(port);
+                }
                 return new NanoHttpServer(ip, port);
             }
         }
