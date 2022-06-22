@@ -24,6 +24,7 @@ import com.android.zxkj.dlna.dmc.DLNACastManager;
 import com.android.zxkj.dlna.dmc.control.ICastInterface;
 
 import org.fourthline.cling.model.meta.Device;
+import org.fourthline.cling.support.model.TransportState;
 
 
 public class ControlFragment extends Fragment implements IDisplayDevice, CastFragment.Callback  {
@@ -118,7 +119,14 @@ public class ControlFragment extends Fragment implements IDisplayDevice, CastFra
         );
 
         // 注册订阅监听
-        DLNACastManager.getInstance().registerSubscriptionListener(event -> mStatusInfo.setText(event.getValue()));
+        DLNACastManager.getInstance().registerSubscriptionListener(new ICastInterface.ISubscriptionListener() {
+            @Override
+            public void onSubscriptionTransportStateChanged(TransportState event) {
+                Log.d(TAG, "onSubscriptionTransportStateChanged: " + event.getValue());
+                mStatusInfo.setText(event.getValue());
+            }
+        });
+//        DLNACastManager.getInstance().registerSubscriptionListener(event -> mStatusInfo.setText(event.getValue()));
     }
 
     private void initComponent(View view) {
@@ -194,7 +202,6 @@ public class ControlFragment extends Fragment implements IDisplayDevice, CastFra
       if (mDevice == null) return;
       DLNACastManager.getInstance().getPositionInfo(mDevice, ((positionInfo, errMsg) -> {
           if (positionInfo != null) {
-              Log.d(TAG, positionInfo.toString());
               mPositionInfo.setText(String.format("%s/%s", positionInfo.getRelTime(), positionInfo.getTrackDuration()));
               if (positionInfo.getTrackDurationSeconds() != 0) {
                   mDurationMillSeconds = positionInfo.getTrackDurationSeconds() * 1000;
@@ -211,7 +218,6 @@ public class ControlFragment extends Fragment implements IDisplayDevice, CastFra
         if (mDevice == null) return;
         DLNACastManager.getInstance().getVolumeInfo(mDevice, ((integer, errMsg) -> {
             if (integer != null && getActivity() != null) {
-                Log.d(TAG, "getVolumeInfo: " + integer);
                 AudioManager audioManager = (AudioManager) getActivity().getSystemService(Context.AUDIO_SERVICE);
                 int maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
                 mVolumeSeekBar.setProgress(integer);

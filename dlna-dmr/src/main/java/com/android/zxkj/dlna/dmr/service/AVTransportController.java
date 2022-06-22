@@ -20,6 +20,7 @@ import org.fourthline.cling.support.model.StorageMedium;
 import org.fourthline.cling.support.model.TransportAction;
 import org.fourthline.cling.support.model.TransportInfo;
 import org.fourthline.cling.support.model.TransportSettings;
+import org.fourthline.cling.support.model.TransportState;
 
 import java.net.URI;
 
@@ -31,7 +32,7 @@ public class AVTransportController implements IRendererInterface.IAVTransportCon
 
     private final UnsignedIntegerFourBytes mInstanceId;
     private final Context mApplicationContext;
-    private final TransportInfo mTransportInfo = new TransportInfo();
+    private TransportInfo mTransportInfo = new TransportInfo();
     private final TransportSettings mTransportSettings = new TransportSettings();
     private PositionInfo mOriginPositionInfo = new PositionInfo();
     private MediaInfo mMediaInfo = new MediaInfo();
@@ -63,6 +64,7 @@ public class AVTransportController implements IRendererInterface.IAVTransportCon
         }
     }
 
+
     @Override
     public DeviceCapabilities getDeviceCapabilities() {
         return new DeviceCapabilities(new StorageMedium[]{StorageMedium.NETWORK});
@@ -82,6 +84,8 @@ public class AVTransportController implements IRendererInterface.IAVTransportCon
 
     @Override
     public TransportInfo getTransportInfo() {
+        Log.d(TAG, "getTransportInfo: 上报状态");
+        mTransportInfo = new TransportInfo(TransportState.PLAYING);
         return mTransportInfo;
     }
 
@@ -108,12 +112,14 @@ public class AVTransportController implements IRendererInterface.IAVTransportCon
 
     @Override
     public void play(String speed) {
+
         mMediaControl.play();
     }
 
     public void pause() {
         mMediaControl.pause();
     }
+
 
     @Override
     public void seek(String unit, String target) throws AVTransportException {

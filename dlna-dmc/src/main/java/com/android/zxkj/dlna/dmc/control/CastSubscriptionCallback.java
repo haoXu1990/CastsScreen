@@ -67,9 +67,11 @@ final class CastSubscriptionCallback extends SubscriptionCallback {
                     try {
                         EventedValue<?> event = parser.parse((String) value).getInstanceIDs().get(0).getValues().get(0);
                         if (event instanceof AVTransportVariable.TransportState) {
+                            Logger.i("[%s 检测到了 AVTransportVariable.TransportState ： ]", event.getValue());
                             mEventCallback.onSubscriptionTransportStateChanged(((AVTransportVariable.TransportState) event).getValue());
                         }
                     } catch (Exception e) {
+                        Logger.i("[%s 出错了： ]", e.toString());
                         e.printStackTrace();
                     }
                 }

@@ -6,7 +6,8 @@
 
         <activity
             android:name=".DLNARenderActivity"
-            android:configChanges="keyboard|screenSize"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:screenOrientation="nosensor"
             android:launchMode="singleTop" />
 
     </application>

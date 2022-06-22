@@ -1,12 +1,9 @@
 package com.android.zxkj.dlna.dmr.media;
 
 import android.content.Context;
-import android.graphics.Color;
-import android.media.MediaPlayer;
 import android.net.Uri;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
@@ -51,13 +48,14 @@ public class ZxineVideoView extends SurfaceView {
     private String mVideoUrl;
 
     // 是否硬解码
-    private boolean mEnableMediaCodec = true;
+    private boolean mEnableMediaCodec = false;
 
     // 播放器是否已经准备好
     private boolean isPrepared = false;
 
     // 当前进度
     private int mCurrentPos;
+
     // 当前播放视频时长
     private int mDuration = -1;
 
@@ -72,14 +70,11 @@ public class ZxineVideoView extends SurfaceView {
 
     IMediaPlayer.OnPreparedListener mPreparedListener = new IMediaPlayer.OnPreparedListener() {
         public void onPrepared(IMediaPlayer mp) {
-            mListener.onPrepared(mp);
+            if (mListener != null) {
+                mListener.onPrepared(mp);
+            }
         }
     };
-
-    IMediaPlayer.OnVideoSizeChangedListener mSizeChangedListener =
-            (mp, width, height, sarNum, sarDen) -> {
-
-            };
 
 
     public ZxineVideoView(@NonNull Context context) {
@@ -104,6 +99,7 @@ public class ZxineVideoView extends SurfaceView {
             @Override
             public void surfaceCreated(@NonNull SurfaceHolder surfaceHolder) {
                 mSurfaceHolder = surfaceHolder;
+                Log.d(TAG, "surfaceCreated: ");
                 openVideo();
             }
 
@@ -111,16 +107,18 @@ public class ZxineVideoView extends SurfaceView {
             public void surfaceChanged(@NonNull SurfaceHolder surfaceHolder, int i, int i1, int i2) {
                 mSurfaceHeight = i1;
                 mSurfaceWidth = i2;
+                Log.d(TAG, "surfaceChanged: ");
                 if (mMediaPlayer != null && isPrepared) {
                     initPosition();
                     mMediaPlayer.start();//开始播放
-                    //开启面板
+
                 }
             }
 
             @Override
             public void surfaceDestroyed(@NonNull SurfaceHolder surfaceHolder) {
                 mSurfaceHolder = null;
+                Log.d(TAG, "surfaceDestroyed: ");
                 release();
             }
         });
@@ -203,74 +201,82 @@ public class ZxineVideoView extends SurfaceView {
             // 异步准备
             mMediaPlayer.prepareAsync();
 
-            mMediaPlayer.setOnVideoSizeChangedListener((iMediaPlayer, i, i1, i2, i3) -> {
-                mVideoWidth = i2;
-                mVideoHeight = i3;
-                if (mOnSizeChanged != null) {
-                    mOnSizeChanged.onSizeChange();
-                }
-                if (mVideoWidth != 0 && mVideoHeight != 0) {
-                    fitVideoSize(mVideoWidth, mVideoHeight, mSurfaceWidth, mSurfaceHeight);
-                }
-            });
-
-            // 准备监听
-            mMediaPlayer.setOnPreparedListener(iMediaPlayer -> {
-                isPrepared = true;
-                showLoaddingView(false);
-                if (mOnPreparedListener != null) {//补偿回调
-                    mOnPreparedListener.onPrepared(iMediaPlayer);
-                }
-
-                if (mVideoWidth != 0 && mVideoHeight != 0) {
-                    //开始初始化
-                    initPosition();
-                    start();
-                }
-            });
-
-            mMediaPlayer.setOnCompletionListener(iMediaPlayer -> {
-                start();
-                if (mOnCompletionListener != null) {
-                    mOnCompletionListener.onCompletion(iMediaPlayer);
-                }
-            });
-
-            mMediaPlayer.setOnErrorListener((iMediaPlayer, i, i1) -> {
-                //隐藏面板
-                if (mOnErrorListener != null) {
-                    mOnErrorListener.onError(iMediaPlayer, i, i1);
-                }
-                return true;
-            });
-
-            mMediaPlayer.setOnInfoListener((iMediaPlayer, i, i1) -> {
-
-                switch (i) {
-                    case IMediaPlayer.MEDIA_INFO_BUFFERING_START:
-                        showLoaddingView(true);
-                        break;
-                    case IMediaPlayer.MEDIA_INFO_BUFFERING_END:
-                        showLoaddingView(false);
-                        break;
-                    default:
-                        break;
-                }
-                return false;
-            });
-
-            mMediaPlayer.setOnBufferingUpdateListener(new IMediaPlayer.OnBufferingUpdateListener() {
-                @Override
-                public void onBufferingUpdate(IMediaPlayer iMediaPlayer, int i) {
-                    mCurrentBufferPer = i;
-                    if (mListener != null) {
-                        mListener.onBufferingUpdate(iMediaPlayer, i);
-                    }
-                }
-            });
         } catch (Exception e) {
             Log.e(TAG, "openVideo: ", e);
         }
+
+        mMediaPlayer.setOnVideoSizeChangedListener((iMediaPlayer, i, i1, i2, i3) -> {
+            Log.d(TAG, "openVideo: i = " + i + "i1 = " + i1 + "i2 = " + i2 + "i3 = " + i3);
+
+            mVideoWidth = i1;
+            mVideoHeight = i1;
+            if (mOnSizeChanged != null) {
+                mOnSizeChanged.onSizeChange();
+            }
+            // 暂时不修复
+//            if (mVideoWidth != 0 && mVideoHeight != 0) {
+//                fitVideoSize(mVideoWidth, mVideoHeight, mSurfaceWidth, mSurfaceHeight);
+//            }
+        });
+
+        // 准备监听
+        mMediaPlayer.setOnPreparedListener(iMediaPlayer -> {
+            isPrepared = true;
+            showLoaddingView(false);
+            if (mOnPreparedListener != null) {//补偿回调
+                mOnPreparedListener.onPrepared(iMediaPlayer);
+            }
+            mVideoWidth = iMediaPlayer.getVideoWidth();
+            mVideoHeight = iMediaPlayer.getVideoHeight();
+
+            if (mVideoWidth != 0 && mVideoHeight != 0) {
+                getHolder().setFixedSize(mVideoWidth, mVideoHeight);
+
+                //开始初始化
+                initPosition();
+                start();
+            }
+        });
+
+        mMediaPlayer.setOnCompletionListener(iMediaPlayer -> {
+            start();
+            if (mOnCompletionListener != null) {
+                mOnCompletionListener.onCompletion(iMediaPlayer);
+            }
+        });
+
+        mMediaPlayer.setOnErrorListener((iMediaPlayer, i, i1) -> {
+            //隐藏面板
+            if (mOnErrorListener != null) {
+                mOnErrorListener.onError(iMediaPlayer, i, i1);
+            }
+            return true;
+        });
+
+        mMediaPlayer.setOnInfoListener((iMediaPlayer, i, i1) -> {
+
+            switch (i) {
+                case IMediaPlayer.MEDIA_INFO_BUFFERING_START:
+                    showLoaddingView(true);
+                    break;
+                case IMediaPlayer.MEDIA_INFO_BUFFERING_END:
+                    showLoaddingView(false);
+                    break;
+                default:
+                    break;
+            }
+            return false;
+        });
+
+        mMediaPlayer.setOnBufferingUpdateListener(new IMediaPlayer.OnBufferingUpdateListener() {
+            @Override
+            public void onBufferingUpdate(IMediaPlayer iMediaPlayer, int i) {
+                mCurrentBufferPer = i;
+                if (mListener != null) {
+                    mListener.onBufferingUpdate(iMediaPlayer, i);
+                }
+            }
+        });
 
     }
 
@@ -315,9 +321,36 @@ public class ZxineVideoView extends SurfaceView {
         surfaceW = (int) (ratio * surfaceH);
 
         //无法直接设置视频尺寸，将计算出的视频尺寸设置到surfaceView 让视频自动填充。
-        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(surfaceW, surfaceH);
-        params.gravity = 0x13;
+//        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(surfaceW, surfaceH);
+//        params.gravity = 0x13;
+        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(surfaceW, surfaceH);
+        params.addRule(13);
         setLayoutParams(params);
+    }
+
+//    @Override
+//    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+//        int w = adjustSize(mVideoWidth, widthMeasureSpec);
+//        int h = adjustSize(mVideoHeight, heightMeasureSpec);
+//        setMeasuredDimension(w, h);
+//    }
+
+    public int adjustSize(int size, int measureSpec) {
+        int result = 0;
+        int mode = MeasureSpec.getMode(measureSpec);
+        int len = MeasureSpec.getMode(measureSpec);
+        switch (mode) {
+            case MeasureSpec.UNSPECIFIED:
+                result = size;
+                break;
+            case MeasureSpec.AT_MOST:
+                result = Math.min(size, len);
+                break;
+            case MeasureSpec.EXACTLY:
+                result = len;
+                break;
+        }
+        return result;
     }
 
     /**

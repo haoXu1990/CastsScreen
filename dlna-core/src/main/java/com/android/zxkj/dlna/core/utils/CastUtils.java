@@ -77,9 +77,10 @@ public class CastUtils {
             else if (isDownloadsDocument(uri)) {
                 final String id = DocumentsContract.getDocumentId(uri);
                 final String id2 = id.replaceFirst("raw:", "");
-                final String id3 = id2.replaceFirst(".*_([0-9]+).*$", "$1");
+                final String id3 = getRealPathFromURI(context, uri);
+
                 try {
-                    final Uri contentUri = ContentUris.withAppendedId(Uri.parse("content://downloads/public_downloads"), Long.parseLong(id3));
+                    final Uri contentUri = ContentUris.withAppendedId(Uri.parse("content://downloads/public_downloads"), Long.parseLong(id2));
                     return getDataColumn(context, contentUri, null, null);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -115,6 +116,20 @@ public class CastUtils {
         return null;
     }
 
+
+
+    private static String getRealPathFromURI (Context context, Uri contentUri) {
+        String path = null;
+        String[] proj = { MediaStore.MediaColumns.DATA };
+        Cursor cursor = context.getContentResolver().query(contentUri, proj, null, null, null);
+        if (cursor.moveToFirst()) {
+            int column_index = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA);
+            path = cursor.getString(column_index);
+        }
+        cursor.close();
+        return path;
+    }
+
     private static boolean isExternalStorageDocument(Uri uri) {
         return "com.android.externalstorage.documents".equals(uri.getAuthority());
     }
@@ -134,6 +149,7 @@ public class CastUtils {
     private static boolean isDownloadsDocument(Uri uri) {
         return "com.android.providers.downloads.documents".equals(uri.getAuthority());
     }
+
 
     /**
      * 获取数据库表中的 _data 列，即返回Uri对应的文件路径

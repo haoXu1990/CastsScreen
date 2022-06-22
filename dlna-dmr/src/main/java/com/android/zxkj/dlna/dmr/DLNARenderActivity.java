@@ -111,10 +111,20 @@ public class DLNARenderActivity extends AppCompatActivity {
 
         mVideoView = findViewById(R.id.video_view);
         mVideoView.setVideoListener(mZxineVideoListener);
+        mVideoView.setOnPreparedListener(new IMediaPlayer.OnPreparedListener() {
+            @Override
+            public void onPrepared(IMediaPlayer mp) {
+                Log.d(TAG, "onPrepared:  发送开始播放通知");
+
+                notifyTransportStateChanged(TransportState.PLAYING);
+                notifyRenderVolumeChanged(10);
+            }
+        });
+
         mVideoView.setLoaddingView(mProgressBar);
 
         // 不开启硬解码
-        mVideoView.setEnableMediaCodec(true);
+        mVideoView.setEnableMediaCodec(false);
     }
 
 
@@ -161,6 +171,7 @@ public class DLNARenderActivity extends AppCompatActivity {
         if (mRendererService != null) {
             if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN || keyCode == KeyEvent.KEYCODE_VOLUME_UP || keyCode == KeyEvent.KEYCODE_VOLUME_MUTE) {
                 int volume = ((AudioManager) getApplication().getSystemService(Context.AUDIO_SERVICE)).getStreamVolume(AudioManager.STREAM_MUSIC);
+                Log.d(TAG, "onKeyDown: " + volume);
                 notifyRenderVolumeChanged(volume);
             } else if (keyCode == KeyEvent.KEYCODE_ENTER || keyCode == KeyEvent.KEYCODE_DPAD_CENTER) {
                 if (mVideoView != null && mVideoView.isPlaying()) {
@@ -177,13 +188,18 @@ public class DLNARenderActivity extends AppCompatActivity {
 
     private void notifyTransportStateChanged(TransportState transportState) {
         if (mRendererService != null) {
+            Log.d(TAG, "notifyTransportStateChanged: " + transportState.getValue());
             mRendererService.getAvTransportLastChange()
-                    .setEventedValue(INSTANCE_ID, new AVTransportVariable.TransportState(transportState));
+                    .setEventedValue(
+                            INSTANCE_ID,
+                            new AVTransportVariable.TransportState(transportState)
+                    );
         }
     }
 
     private void notifyRenderVolumeChanged(int volume) {
         if (mRendererService != null) {
+            Log.d(TAG, "notifyRenderVolumeChanged: " + volume);
             mRendererService.getAudioControlLastChange()
                     .setEventedValue(INSTANCE_ID, new RenderingControlVariable.Volume(new ChannelVolume(Channel.Master, volume)));
         }

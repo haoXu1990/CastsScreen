@@ -1,6 +1,7 @@
 package com.android.zxkj.dlna.dmc.control;
 
 import android.text.TextUtils;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -24,6 +25,8 @@ public class ControlImpl implements ICastInterface.IControl {
     // 播放源URI
     private String mUri;
 
+    private static final String TAG = "ControlImpl";
+
     public ControlImpl(@NonNull ControlPoint controlPoint, @NonNull Device<?, ?, ?> device,
                        Map<String, IServiceAction.IServiceActionCallback<?>> map, ICastInterface.ISubscriptionListener subscriptionListener) {
         mDevice = device;
@@ -32,6 +35,8 @@ public class ControlImpl implements ICastInterface.IControl {
 
         ((BaseServiceExecutor) mServiceFactory.getAvService()).execute(event -> {
             if (subscriptionListener != null) {
+                Log.d(TAG, "ControlImpl: " , new Exception());
+                Log.d(TAG, "ControlImpl: " + event.getValue());
                 subscriptionListener.onSubscriptionTransportStateChanged(event);
             }
         });
