@@ -51,7 +51,7 @@ public class ZxineVideoView extends SurfaceView {
     private String mVideoUrl;
 
     // 是否硬解码
-    private boolean mEnableMediaCodec = false;
+    private boolean mEnableMediaCodec = true;
 
     // 播放器是否已经准备好
     private boolean isPrepared = false;
@@ -148,8 +148,7 @@ public class ZxineVideoView extends SurfaceView {
     private IMediaPlayer createPlayer() {
 
         IjkMediaPlayer ijkMediaPlayer = new IjkMediaPlayer();
-        // 设置 Option 会崩溃, 不知道原因, 感觉是线程问题
-        // A/libc: Fatal signal 11 (SIGSEGV), code 2 (SEGV_ACCERR), fault addr 0x7150e86b10 in tid 16752 (Thread-4), pid 16499 (d.zxkj.renderer)
+
 //        ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "opensles", 1);
 //
 //        ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "overlay-format", IjkMediaPlayer.SDL_FCC_RV32);
@@ -157,7 +156,7 @@ public class ZxineVideoView extends SurfaceView {
 //        ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "start-on-prepared", 0);
 //
 //        ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "http-detect-range-support", 1);
-//
+
         // 环路过滤 0 开启 画面质量高， 解码开销高
         // 48关闭 画面质量差， 解码开销小
 //        ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_CODEC, "skip_loop_filter", 48);

@@ -114,7 +114,7 @@ public class DLNARenderActivity extends AppCompatActivity {
         mVideoView.setLoaddingView(mProgressBar);
 
         // 不开启硬解码
-        mVideoView.setEnableMediaCodec(false);
+        mVideoView.setEnableMediaCodec(true);
     }
 
 
