@@ -20,10 +20,14 @@
         android:layout_height="wrap_content"
         />
 
-    <com.android.zxkj.dlna.dmr.media.ZxineVideoView
+    <com.shuyu.gsyvideoplayer.video.StandardGSYVideoPlayer
         android:id="@+id/video_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
+<!--    <com.android.zxkj.dlna.dmr.media.ZxineVideoView-->
+<!--        android:id="@+id/video_view"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="match_parent"/>-->
 
     <ProgressBar
         android:id="@+id/video_progress"

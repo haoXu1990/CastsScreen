@@ -24,6 +24,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.android.zxkj.dlna.dmr.media.ZxineVideoListener;
 import com.android.zxkj.dlna.dmr.media.ZxineVideoView;
 import com.android.zxkj.dlna.dmr.widget.MyImageView;
+import com.shuyu.gsyvideoplayer.GSYVideoManager;
+import com.shuyu.gsyvideoplayer.listener.GSYSampleCallBack;
+import com.shuyu.gsyvideoplayer.utils.GSYVideoType;
+import com.shuyu.gsyvideoplayer.utils.OrientationUtils;
+import com.shuyu.gsyvideoplayer.video.StandardGSYVideoPlayer;
 //import com.google.android.exoplayer2.ExoPlaybackException;
 //import com.google.android.exoplayer2.ExoPlayer;
 //import com.google.android.exoplayer2.MediaItem;
@@ -68,6 +73,9 @@ public class DLNARenderActivity extends AppCompatActivity {
 
     private MyImageView mImageView;
 
+    private StandardGSYVideoPlayer mGSYVideoPlayer;
+    private OrientationUtils orientationUtils;
+
     private final ZxineVideoListener mZxineVideoListener = new ZxineVideoListener() {
         @Override
         public void onPrepared(IMediaPlayer iMediaPlayer) {
@@ -84,7 +92,7 @@ public class DLNARenderActivity extends AppCompatActivity {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             mRendererService = ((DLNARendererService.RendererServiceBinder) service).getRendererService();
-            mRendererService.setRenderControl(new IDLNARenderControl.VideoViewRenderControl(mVideoView));
+            mRendererService.setRenderControl(new IDLNARenderControl.GSYVideoViewRenderControl(mGSYVideoPlayer));
         }
 
         @Override
@@ -98,11 +106,47 @@ public class DLNARenderActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dlna_renderer);
 
-        initCompent();
+        initCompentGSY();
+//        initCompent();
         bindService(new Intent(this, DLNARendererService.class), mServiceConnection, Service.BIND_AUTO_CREATE);
         openMedia(getIntent());
     }
 
+    private void initCompentGSY() {
+        mProgressBar = findViewById(R.id.video_progress);
+        mProgressBar.setVisibility(View.INVISIBLE);
+        mImageView = findViewById(R.id.image_view);
+        mImageView.setVisibility(View.INVISIBLE);
+        mGSYVideoPlayer = findViewById(R.id.video_view);
+
+        mGSYVideoPlayer.getBackButton().setVisibility(View.VISIBLE);
+        mGSYVideoPlayer.setVideoAllCallBack(new GSYSampleCallBack() {
+            @Override
+            public void onPrepared(String url, Object... objects) {
+                super.onPrepared(url, objects);
+                orientationUtils.setEnable(true);
+            }
+        });
+
+        mGSYVideoPlayer.getFullscreenButton().setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mGSYVideoPlayer.startWindowFullscreen(DLNARenderActivity.this, true, true);
+            }
+        });
+
+        // 绘制模式
+        GSYVideoType.setRenderType(GSYVideoType.GLSURFACE);
+        GSYVideoType.setShowType(GSYVideoType.SCREEN_MATCH_FULL);
+
+
+        mGSYVideoPlayer.setNeedOrientationUtils(true);
+        orientationUtils = new OrientationUtils(this, mGSYVideoPlayer);
+
+        // 手动旋转
+        orientationUtils.resolveByClick();
+
+    }
     private void initCompent() {
         mProgressBar = findViewById(R.id.video_progress);
 
@@ -148,8 +192,12 @@ public class DLNARenderActivity extends AppCompatActivity {
                 mImageView.setImageURL(currentUri);
             } else {
                 Log.d(TAG, "open Media Uir: "+ currentUri);
+                mProgressBar.setVisibility(View.INVISIBLE);
 
-                mVideoView.setPath(currentUri);
+                mGSYVideoPlayer.onVideoPause();
+                mGSYVideoPlayer.onVideoReset();
+                mGSYVideoPlayer.setUp(currentUri, true, "");
+                mGSYVideoPlayer.startPlayLogic();
             }
         } else {
             Toast.makeText(this, "没有找到有效的视频地址，请检查...", Toast.LENGTH_SHORT).show();
@@ -159,7 +207,9 @@ public class DLNARenderActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-        if (mVideoView != null) mVideoView.release();
+//        if (mVideoView != null) mVideoView.release();
+        if (mGSYVideoPlayer != null) GSYVideoManager.releaseAllVideos();
+        if (orientationUtils != null) orientationUtils.releaseListener();
         notifyTransportStateChanged(TransportState.STOPPED);
         unbindService(mServiceConnection);
         super.onDestroy();
@@ -174,13 +224,20 @@ public class DLNARenderActivity extends AppCompatActivity {
                 Log.d(TAG, "onKeyDown: " + volume);
                 notifyRenderVolumeChanged(volume);
             } else if (keyCode == KeyEvent.KEYCODE_ENTER || keyCode == KeyEvent.KEYCODE_DPAD_CENTER) {
-                if (mVideoView != null && mVideoView.isPlaying()) {
-                    mVideoView.pause();
-                    notifyTransportStateChanged(TransportState.PAUSED_PLAYBACK);
-                } else if (mVideoView != null) {
-                    mVideoView.start();
-                    notifyTransportStateChanged(TransportState.PLAYING);
-                }
+//                if (mGSYVideoPlayer != null && mGSYVideoPlayer.isPlaying()) {
+//                    mVideoView.pause();
+//                    notifyTransportStateChanged(TransportState.PAUSED_PLAYBACK);
+//                } else if (mVideoView != null) {
+//                    mVideoView.start();
+//                    notifyTransportStateChanged(TransportState.PLAYING);
+//                }
+//                if (mVideoView != null && mVideoView.isPlaying()) {
+//                    mVideoView.pause();
+//                    notifyTransportStateChanged(TransportState.PAUSED_PLAYBACK);
+//                } else if (mVideoView != null) {
+//                    mVideoView.start();
+//                    notifyTransportStateChanged(TransportState.PLAYING);
+//                }
             }
         }
         return handled;
