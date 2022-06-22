@@ -29,6 +29,8 @@ public class JettyHttpServer implements IResourceServer {
                     Log.d(TAG, "JettyServer start. ");
                     try {
                         mServer.start();
+                        // 打印dump时的信息
+                        System.out.println(mServer.dump());
                         mServer.join();
                         Log.d(TAG, "run: JettyServer complete.");
                     } catch (Exception e) {

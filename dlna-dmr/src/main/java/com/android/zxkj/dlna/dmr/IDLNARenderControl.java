@@ -52,6 +52,7 @@ public interface IDLNARenderControl {
 
         @Override
         public void stop() {
+            Log.d(TAG, " 收到 stop 事件");
             videoView.stop();
         }
 

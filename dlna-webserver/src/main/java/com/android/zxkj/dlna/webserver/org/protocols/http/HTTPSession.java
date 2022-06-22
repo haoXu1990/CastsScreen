@@ -108,7 +108,7 @@ public class HTTPSession implements IHTTPSession {
 
     private String remoteIp;
 
-    private String remoteHostname;
+//    private String remoteHostname;
 
     private String protocolVersion;
 
@@ -125,7 +125,7 @@ public class HTTPSession implements IHTTPSession {
         this.inputStream = new BufferedInputStream(inputStream, HTTPSession.BUFSIZE);
         this.outputStream = outputStream;
         this.remoteIp = inetAddress.isLoopbackAddress() || inetAddress.isAnyLocalAddress() ? "127.0.0.1" : inetAddress.getHostAddress().toString();
-        this.remoteHostname = inetAddress.isLoopbackAddress() || inetAddress.isAnyLocalAddress() ? "localhost" : inetAddress.getHostName().toString();
+//        this.remoteHostname = inetAddress.isLoopbackAddress() || inetAddress.isAnyLocalAddress() ? "localhost" : inetAddress.getHostName().toString();
         this.headers = new HashMap<String, String>();
     }
 
@@ -698,8 +698,8 @@ public class HTTPSession implements IHTTPSession {
         return this.remoteIp;
     }
 
-    @Override
-    public String getRemoteHostName() {
-        return this.remoteHostname;
-    }
+//    @Override
+//    public String getRemoteHostName() {
+//        return this.remoteHostname;
+//    }
 }

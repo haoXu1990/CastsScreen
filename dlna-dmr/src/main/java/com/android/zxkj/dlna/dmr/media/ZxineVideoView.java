@@ -134,6 +134,8 @@ public class ZxineVideoView extends SurfaceView {
         loaddingView = view;
     }
 
+    public String getUrl() { return mVideoUrl; }
+
     /**
      * 初始化最初位置
      */

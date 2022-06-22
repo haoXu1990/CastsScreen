@@ -15,6 +15,8 @@
  */
 package com.android.zxkj.dlna.dms;
 
+import android.util.Log;
+
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.util.resource.FileResource;
 import org.eclipse.jetty.util.resource.Resource;
@@ -30,7 +32,10 @@ public class ContentResourceServlet extends DefaultServlet {
         // Uri uri = ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, Long.parseLong(id));
         try {
             File file = new File(pathInContext);
-            if (file.exists()) return FileResource.newResource(file);
+            if (file.exists())  {
+                return FileResource.newResource(file);
+            }
+            Log.d("ContentResourceServlet", "getResource: file not exists:  " + pathInContext);
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -76,8 +76,15 @@ public class CastUtils {
             // DownloadsProvider
             else if (isDownloadsDocument(uri)) {
                 final String id = DocumentsContract.getDocumentId(uri);
-                final Uri contentUri = ContentUris.withAppendedId(Uri.parse("content://downloads/public_downloads"), Long.parseLong(id));
-                return getDataColumn(context, contentUri, null, null);
+                final String id2 = id.replaceFirst("raw:", "");
+                final String id3 = id2.replaceFirst(".*_([0-9]+).*$", "$1");
+                try {
+                    final Uri contentUri = ContentUris.withAppendedId(Uri.parse("content://downloads/public_downloads"), Long.parseLong(id3));
+                    return getDataColumn(context, contentUri, null, null);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                return getDataColumn(context, uri, null, null);
             }
             // MediaProvider
             else if (isMediaDocument(uri)) {
