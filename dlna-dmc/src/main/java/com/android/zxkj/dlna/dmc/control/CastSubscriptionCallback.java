@@ -24,6 +24,8 @@ final class CastSubscriptionCallback extends SubscriptionCallback {
 
     public CastSubscriptionCallback(Service service, int requestedDurationSeconds, ICastInterface.ISubscriptionListener eventCallback) {
         super(service, requestedDurationSeconds);
+//        setSubscription(eventCallback);
+
         mEventCallback = eventCallback;
     }
 

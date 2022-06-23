@@ -74,6 +74,7 @@ public class MainActivity extends AppCompatActivity {
             mDeviceListAdapter.setSelectedDevice(selected ? castDevice : null);
 
             ((IDisplayDevice) mControlFragment).setCastDevice(selected ? castDevice: null);
+
             ((IDisplayDevice) mLocalControlFragment).setCastDevice(selected ? castDevice: null);
         }));
 

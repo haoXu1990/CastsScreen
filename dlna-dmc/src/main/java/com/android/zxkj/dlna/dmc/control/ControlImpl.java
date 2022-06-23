@@ -27,16 +27,17 @@ public class ControlImpl implements ICastInterface.IControl {
 
     private static final String TAG = "ControlImpl";
 
-    public ControlImpl(@NonNull ControlPoint controlPoint, @NonNull Device<?, ?, ?> device,
-                       Map<String, IServiceAction.IServiceActionCallback<?>> map, ICastInterface.ISubscriptionListener subscriptionListener) {
+    public ControlImpl(@NonNull ControlPoint controlPoint,
+                       @NonNull Device<?, ?, ?> device,
+                       Map<String, IServiceAction.IServiceActionCallback<?>> map,
+                       ICastInterface.ISubscriptionListener subscriptionListener) {
         mDevice = device;
         mCallbackMap = map;
         mServiceFactory = new IServiceFactory.ServiceFactoryImpl(controlPoint, device);
 
         ((BaseServiceExecutor) mServiceFactory.getAvService()).execute(event -> {
             if (subscriptionListener != null) {
-//                Log.d(TAG, "ControlImpl: " , new Exception());
-                Log.d(TAG, "ControlImpl: " + event.getValue());
+                Log.d(TAG, "ControlImpl: " , new Exception());
                 subscriptionListener.onSubscriptionTransportStateChanged(event);
             }
         });

@@ -1,5 +1,6 @@
 package com.android.zxkj.dlna.dmr;
 
+import android.app.ActivityOptions;
 import android.app.Service;
 import android.content.ComponentName;
 import android.content.Context;
@@ -7,11 +8,13 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.hardware.display.DisplayManager;
 import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Looper;
 import android.util.Log;
+import android.view.Display;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.ImageView;
@@ -60,9 +63,24 @@ public class DLNARenderActivity extends AppCompatActivity {
         Intent intent = new Intent(context, DLNARenderActivity.class);
         intent.putExtra(KEY_EXTRA_CURRENT_URI, currentURI);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
         context.startActivity(intent);
+//        context.startActivity(intent, getOption(context).toBundle());
     }
 
+    static ActivityOptions getOption(Context context) {
+        int display = 0;
+        ActivityOptions options = ActivityOptions.makeBasic();
+        DisplayManager displayManager = (DisplayManager)context.getApplicationContext().getSystemService(Context.DISPLAY_SERVICE);
+        Display[] presentationDisplays = displayManager.getDisplays(null);
+        if (presentationDisplays.length > 0) {
+            Display presentationDisplay = presentationDisplays[presentationDisplays.length - 1];
+            display = presentationDisplay.getDisplayId();
+        }
+        options.setLaunchDisplayId(display);
+
+        return options;
+    }
     private final UnsignedIntegerFourBytes INSTANCE_ID = new UnsignedIntegerFourBytes(0);
 
     private ProgressBar mProgressBar;
@@ -119,8 +137,6 @@ public class DLNARenderActivity extends AppCompatActivity {
         mImageView.setVisibility(View.INVISIBLE);
         mGSYVideoPlayer = findViewById(R.id.video_view);
 
-        // 开启自动旋转屏幕
-        mGSYVideoPlayer.setRotateViewAuto(true);
         // 关闭全屏动画
         mGSYVideoPlayer.setShowFullAnimation(false);
 
@@ -144,6 +160,7 @@ public class DLNARenderActivity extends AppCompatActivity {
                 notifyTransportStateChanged(TransportState.PLAYING);
 
                 // 开启全屏
+                // 有问题： 这里开启全屏后，loadding hud 不会隐藏
 //                mGSYVideoPlayer.startWindowFullscreen(DLNARenderActivity.this, true, true);
 
             }
