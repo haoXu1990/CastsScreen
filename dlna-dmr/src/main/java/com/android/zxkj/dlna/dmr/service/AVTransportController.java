@@ -24,18 +24,30 @@ import org.fourthline.cling.support.model.TransportState;
 
 import java.net.URI;
 
+// AVTransport 控制器
 public class AVTransportController implements IRendererInterface.IAVTransportControl {
     private static final TransportAction[] TRANSPORT_ACTION_STOPPED = new TransportAction[]{TransportAction.Play};
     private static final TransportAction[] TRANSPORT_ACTION_PLAYING = new TransportAction[]{TransportAction.Stop, TransportAction.Pause, TransportAction.Seek};
-    private static final TransportAction[] TRANSPORT_ACTION_PAUSE_PLAYBACK = new TransportAction[]{TransportAction.Play, TransportAction.Seek, TransportAction.Stop};
+    private static final TransportAction[] TRANSPORT_ACTION_PAUSE_PLAYBACK = new TransportAction[]{TransportAction.Play, TransportAction.Seek, TransportAction.Stop,TransportAction.Pause};
+
     private static final String TAG = "AVTransportController";
 
     private final UnsignedIntegerFourBytes mInstanceId;
     private final Context mApplicationContext;
+
+    // 播放状态信息
     private TransportInfo mTransportInfo = new TransportInfo();
+
+    // 播放设置
     private final TransportSettings mTransportSettings = new TransportSettings();
+
+    // 播放位置信息
     private PositionInfo mOriginPositionInfo = new PositionInfo();
+
+    // 媒体信息
     private MediaInfo mMediaInfo = new MediaInfo();
+
+    // 播放器控制器
     private final IDLNARenderControl mMediaControl;
 
     public AVTransportController(Context context, IDLNARenderControl control) {
@@ -48,6 +60,9 @@ public class AVTransportController implements IRendererInterface.IAVTransportCon
         mMediaControl = control;
     }
 
+    //------------------------
+    // 下面是一些播放控制方法
+    //------------------------
 
     public UnsignedIntegerFourBytes getInstanceId() {
         return mInstanceId;
@@ -85,7 +100,6 @@ public class AVTransportController implements IRendererInterface.IAVTransportCon
     @Override
     public TransportInfo getTransportInfo() {
         Log.d(TAG, "getTransportInfo: 上报状态");
-        mTransportInfo = new TransportInfo(TransportState.PLAYING);
         return mTransportInfo;
     }
 
@@ -103,6 +117,20 @@ public class AVTransportController implements IRendererInterface.IAVTransportCon
         }
         mMediaInfo = new MediaInfo(currentURI, currentURIMetaData, new UnsignedIntegerFourBytes(1), "", StorageMedium.NETWORK);
         mOriginPositionInfo = new PositionInfo(1, currentURIMetaData, currentURI);
+
+        String type = "image";
+        if (currentURIMetaData.contains("object.item.videoItem")) {
+            type = "video";
+        } else if (currentURIMetaData.contains("object.item.imageItem")) {
+            type = "image";
+        } else if (currentURIMetaData.contains("object.item.audioItem")) {
+            type = "audio";
+        }
+        Log.d(TAG, "setAVTransportURI type = " + type);
+
+
+        // TODO: 如果当前 Renderer 端正在播放的话，还需要发送停止事件，然后释放播放器
+        // 这一步思考一下在哪里来处理比较合适
         DLNARenderActivity.startActivity(mApplicationContext, currentURI);
     }
 
@@ -117,6 +145,7 @@ public class AVTransportController implements IRendererInterface.IAVTransportCon
     }
 
     public void pause() {
+        mTransportInfo = new TransportInfo(TransportState.PAUSED_PLAYBACK);
         mMediaControl.pause();
     }
 
@@ -132,6 +161,7 @@ public class AVTransportController implements IRendererInterface.IAVTransportCon
     }
 
     synchronized public void stop() {
+        mTransportInfo = new TransportInfo(TransportState.STOPPED);
         mMediaControl.stop();
     }
 

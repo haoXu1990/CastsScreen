@@ -1,15 +1,12 @@
 package com.android.zxkj.dlna.dmr;
 
-//import android.os.Handler;
-//import android.os.Looper;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import com.android.zxkj.dlna.dmr.media.ZxineVideoView;
+import com.shuyu.gsyvideoplayer.GSYVideoManager;
 import com.shuyu.gsyvideoplayer.video.StandardGSYVideoPlayer;
-//import com.google.android.exoplayer2.ExoPlayer;
-//import com.shuyu.gsyvideoplayer.GSYVideoADManager;
-//import com.shuyu.gsyvideoplayer.GSYVideoManager;
-//import com.shuyu.gsyvideoplayer.video.StandardGSYVideoPlayer;
 
 public interface IDLNARenderControl {
     void play();
@@ -72,30 +69,53 @@ public interface IDLNARenderControl {
     final class GSYVideoViewRenderControl implements IDLNARenderControl {
         private final StandardGSYVideoPlayer videoView;
         private static final String TAG = "GSYVideoViewRenderControl";
+
+        private final Handler mHandler = new Handler(Looper.getMainLooper());
+
         public GSYVideoViewRenderControl(StandardGSYVideoPlayer videoView) {
             this.videoView = videoView;
         }
 
         @Override
         public void play() {
-            videoView.onVideoResume();
+            mHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    videoView.onVideoResume();
+                }
+            });
         }
 
         @Override
         public void pause() {
-            Log.d("TAG", "pause: ");
-            videoView.onVideoPause();
+            mHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    videoView.onVideoPause();
+                }
+            });
         }
 
         @Override
         public void seek(long position) {
-            videoView.seekTo((int) position);
+            mHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    videoView.seekTo((int) position);
+                }
+            });
+
         }
 
         @Override
         public void stop() {
             Log.d(TAG, " 收到 stop 事件");
-            videoView.onVideoReset();
+            mHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    videoView.release();
+                }
+            });
         }
 
         @Override

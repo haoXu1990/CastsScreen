@@ -89,7 +89,7 @@ public class ControlFragment extends Fragment implements IDisplayDevice, CastFra
 
                     @Override
                     public void onFailed(String errMsg) {
-                        Toast.makeText(getActivity(), errMsg, Toast.LENGTH_LONG).show();
+                        Toast.makeText(getActivity(), errMsg, Toast.LENGTH_SHORT).show();
                     }
                 },
                 // 停止
@@ -101,7 +101,7 @@ public class ControlFragment extends Fragment implements IDisplayDevice, CastFra
 
                     @Override
                     public void onFailed(String errMsg) {
-                        Toast.makeText(getActivity(), errMsg, Toast.LENGTH_LONG).show();
+                        Toast.makeText(getActivity(), errMsg, Toast.LENGTH_SHORT).show();
                     }
                 },
                 // 拖动进度
@@ -113,7 +113,7 @@ public class ControlFragment extends Fragment implements IDisplayDevice, CastFra
 
                     @Override
                     public void onFailed(String errMsg) {
-                        Toast.makeText(getActivity(), errMsg, Toast.LENGTH_LONG).show();
+                        Toast.makeText(getActivity(), errMsg, Toast.LENGTH_SHORT).show();
                     }
                 }
         );

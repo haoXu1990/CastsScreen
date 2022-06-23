@@ -35,7 +35,7 @@ public class ControlImpl implements ICastInterface.IControl {
 
         ((BaseServiceExecutor) mServiceFactory.getAvService()).execute(event -> {
             if (subscriptionListener != null) {
-                Log.d(TAG, "ControlImpl: " , new Exception());
+//                Log.d(TAG, "ControlImpl: " , new Exception());
                 Log.d(TAG, "ControlImpl: " + event.getValue());
                 subscriptionListener.onSubscriptionTransportStateChanged(event);
             }

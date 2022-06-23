@@ -119,32 +119,50 @@ public class DLNARenderActivity extends AppCompatActivity {
         mImageView.setVisibility(View.INVISIBLE);
         mGSYVideoPlayer = findViewById(R.id.video_view);
 
+        // 开启自动旋转屏幕
+        mGSYVideoPlayer.setRotateViewAuto(true);
+        // 关闭全屏动画
+        mGSYVideoPlayer.setShowFullAnimation(false);
+
+        // 设置返回按钮
         mGSYVideoPlayer.getBackButton().setVisibility(View.VISIBLE);
+
+        mGSYVideoPlayer.getBackButton().setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                finish();
+            }
+        });
+
         mGSYVideoPlayer.setVideoAllCallBack(new GSYSampleCallBack() {
             @Override
             public void onPrepared(String url, Object... objects) {
                 super.onPrepared(url, objects);
                 orientationUtils.setEnable(true);
+                // 开启全屏
+//                mGSYVideoPlayer.startWindowFullscreen(DLNARenderActivity.this, true, true);
+
             }
         });
 
         mGSYVideoPlayer.getFullscreenButton().setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                // 开启/退出 全屏
                 mGSYVideoPlayer.startWindowFullscreen(DLNARenderActivity.this, true, true);
             }
         });
 
         // 绘制模式
         GSYVideoType.setRenderType(GSYVideoType.GLSURFACE);
-        GSYVideoType.setShowType(GSYVideoType.SCREEN_MATCH_FULL);
+        GSYVideoType.setShowType(GSYVideoType.SCREEN_TYPE_DEFAULT);
 
 
         mGSYVideoPlayer.setNeedOrientationUtils(true);
         orientationUtils = new OrientationUtils(this, mGSYVideoPlayer);
 
         // 手动旋转
-        orientationUtils.resolveByClick();
+//        orientationUtils.resolveByClick();
 
     }
     private void initCompent() {

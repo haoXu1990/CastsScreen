@@ -21,13 +21,16 @@ import java.util.Collections;
 import java.util.List;
 
 final class DeviceRegistryImpl extends DefaultRegistryListener {
+    //　registerListener
     private final OnDeviceRegistryListener mOnDeviceRegistryListener;
+    // 主线程发送 register 消息
     private final Handler mHandler = new Handler(Looper.getMainLooper());
-    private volatile boolean mIgnoreUpdate = true;
+
+    private volatile boolean mIgnoreUpdate = false;
 
     public DeviceRegistryImpl(@NonNull OnDeviceRegistryListener listener) {
         mOnDeviceRegistryListener = listener;
-        setIgnoreUpdateEvent(true);
+        setIgnoreUpdateEvent(false);
     }
 
     public void setIgnoreUpdateEvent(boolean ignoreUpdate) {

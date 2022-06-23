@@ -10,6 +10,7 @@ import org.fourthline.cling.android.AndroidUpnpServiceImpl;
 import org.fourthline.cling.android.FixedAndroidLogHandler;
 import org.fourthline.cling.model.types.ServiceType;
 
+// 自定义 upnpServer
 public class DLNACastService extends AndroidUpnpServiceImpl {
     @Override
     public void onCreate() {
