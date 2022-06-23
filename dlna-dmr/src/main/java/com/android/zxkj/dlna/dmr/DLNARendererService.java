@@ -78,14 +78,18 @@ public class DLNARendererService extends AndroidUpnpServiceImpl {
     public void onCreate() {
         org.seamless.util.logging.LoggingUtil.resetRootHandler(new FixedAndroidLogHandler());
         super.onCreate();
+
         String ipAddress = DeviceWiFiInfo.getWiFiInfoIPAddress(getApplicationContext());
+
         // 添加音频控制器
         mRenderControlManager.addControl(new AudioRenderController(getApplicationContext()));
+
         // 添加视频控制器
         mRenderControlManager.addControl(new AVTransportController(getApplicationContext(), new IDLNARenderControl.DefaultRenderControl()));
         try {
             // 创建一个本地渲染设备
             mRendererDevice = createRendererDevice(getApplicationContext(), ipAddress);
+
             // 把渲染设备注册到 UPNPService 中
             upnpService.getRegistry().addDevice(mRendererDevice);
         } catch (Exception e) {
@@ -122,6 +126,10 @@ public class DLNARendererService extends AndroidUpnpServiceImpl {
 
     public void setRenderControl(IDLNARenderControl control) {
         mRenderControlManager.addControl(new AVTransportController(getApplicationContext(), control));
+    }
+
+    public RenderControlManager getRenderControlManager() {
+        return mRenderControlManager;
     }
 
     // -------------------------------------------------------------------------------------------

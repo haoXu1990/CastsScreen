@@ -130,7 +130,8 @@ public class DLNARenderActivity extends AppCompatActivity {
         mGSYVideoPlayer.getBackButton().setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                finish();
+//                finish();
+                notifyTransportStateChanged(TransportState.PLAYING);
             }
         });
 
@@ -139,6 +140,9 @@ public class DLNARenderActivity extends AppCompatActivity {
             public void onPrepared(String url, Object... objects) {
                 super.onPrepared(url, objects);
                 orientationUtils.setEnable(true);
+                Log.d(TAG, "onPrepared: ");
+                notifyTransportStateChanged(TransportState.PLAYING);
+
                 // 开启全屏
 //                mGSYVideoPlayer.startWindowFullscreen(DLNARenderActivity.this, true, true);
 
@@ -209,11 +213,13 @@ public class DLNARenderActivity extends AppCompatActivity {
                 mProgressBar.setVisibility(View.INVISIBLE);
                 mImageView.setImageURL(currentUri);
             } else {
-                Log.d(TAG, "open Media Uir: "+ currentUri);
+
                 mProgressBar.setVisibility(View.INVISIBLE);
 
                 mGSYVideoPlayer.onVideoPause();
                 mGSYVideoPlayer.onVideoReset();
+                mGSYVideoPlayer.release();
+
                 mGSYVideoPlayer.setUp(currentUri, true, "");
                 mGSYVideoPlayer.startPlayLogic();
             }
@@ -264,6 +270,8 @@ public class DLNARenderActivity extends AppCompatActivity {
     private void notifyTransportStateChanged(TransportState transportState) {
         if (mRendererService != null) {
             Log.d(TAG, "notifyTransportStateChanged: " + transportState.getValue());
+//            mRendererService.
+//            mRendererService.getRenderControlManager()
             mRendererService.getAvTransportLastChange()
                     .setEventedValue(
                             INSTANCE_ID,

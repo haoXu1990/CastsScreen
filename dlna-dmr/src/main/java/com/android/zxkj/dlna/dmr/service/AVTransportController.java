@@ -33,12 +33,14 @@ public class AVTransportController implements IRendererInterface.IAVTransportCon
     private static final String TAG = "AVTransportController";
 
     private final UnsignedIntegerFourBytes mInstanceId;
+
     private final Context mApplicationContext;
 
     // 播放状态信息
+    //  这个放在这里不合适啊！！！！！！
     private TransportInfo mTransportInfo = new TransportInfo();
 
-    // 播放设置
+    // 播放设置, 这个暂时不支持，直接传个默认的
     private final TransportSettings mTransportSettings = new TransportSettings();
 
     // 播放位置信息
@@ -74,8 +76,10 @@ public class AVTransportController implements IRendererInterface.IAVTransportCon
                 return TRANSPORT_ACTION_PLAYING;
             case PAUSED_PLAYBACK:
                 return TRANSPORT_ACTION_PAUSE_PLAYBACK;
-            default:
+            case STOPPED:
                 return TRANSPORT_ACTION_STOPPED;
+            default:
+                return null;
         }
     }
 
@@ -99,7 +103,10 @@ public class AVTransportController implements IRendererInterface.IAVTransportCon
 
     @Override
     public TransportInfo getTransportInfo() {
-        Log.d(TAG, "getTransportInfo: 上报状态");
+        Log.d(TAG, "getTransportInfo: 上报状态 " + mTransportInfo.getCurrentTransportState().getValue());
+//        Log.d(TAG, "getTransportInfo: " , new Exception());
+        // TODO: 这里暂时还没搞明白，这个mTransportInfo 的信息应该是需要更新的，但是目前没有发现哪里在更新
+        // 当播放状态改变时，应该需要修改
         return mTransportInfo;
     }
 
@@ -118,6 +125,8 @@ public class AVTransportController implements IRendererInterface.IAVTransportCon
         mMediaInfo = new MediaInfo(currentURI, currentURIMetaData, new UnsignedIntegerFourBytes(1), "", StorageMedium.NETWORK);
         mOriginPositionInfo = new PositionInfo(1, currentURIMetaData, currentURI);
 
+        // TODO: 这里可以解析出来投屏过来的媒体类型
+        // 根据不同的媒体类型调用不同的渲染 Activity
         String type = "image";
         if (currentURIMetaData.contains("object.item.videoItem")) {
             type = "video";
@@ -140,7 +149,7 @@ public class AVTransportController implements IRendererInterface.IAVTransportCon
 
     @Override
     public void play(String speed) {
-
+        mTransportInfo = new TransportInfo(TransportState.PLAYING);
         mMediaControl.play();
     }
 
@@ -164,6 +173,11 @@ public class AVTransportController implements IRendererInterface.IAVTransportCon
         mTransportInfo = new TransportInfo(TransportState.STOPPED);
         mMediaControl.stop();
     }
+
+    synchronized protected void transportStateChanged(TransportState newState) {
+        mTransportInfo = new TransportInfo(newState);
+    }
+
 
     @Override
     public void previous() {

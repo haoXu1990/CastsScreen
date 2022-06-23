@@ -81,7 +81,8 @@ public interface IDLNARenderControl {
             mHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    videoView.onVideoResume();
+                    Log.d(TAG, "onVideoResume: ");
+                    videoView.onVideoResume(false);
                 }
             });
         }
@@ -91,6 +92,7 @@ public interface IDLNARenderControl {
             mHandler.post(new Runnable() {
                 @Override
                 public void run() {
+                    Log.d(TAG, "onVideoPause: ");
                     videoView.onVideoPause();
                 }
             });
