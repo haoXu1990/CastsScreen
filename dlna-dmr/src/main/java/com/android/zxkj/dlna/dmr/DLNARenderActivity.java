@@ -27,8 +27,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.android.zxkj.dlna.dmr.media.ZxineVideoListener;
 import com.android.zxkj.dlna.dmr.media.ZxineVideoView;
 import com.android.zxkj.dlna.dmr.widget.MyImageView;
+import com.google.android.exoplayer2.Player;
 import com.shuyu.gsyvideoplayer.GSYVideoManager;
 import com.shuyu.gsyvideoplayer.listener.GSYSampleCallBack;
+import com.shuyu.gsyvideoplayer.player.IjkPlayerManager;
+import com.shuyu.gsyvideoplayer.player.PlayerFactory;
 import com.shuyu.gsyvideoplayer.utils.GSYVideoType;
 import com.shuyu.gsyvideoplayer.utils.OrientationUtils;
 import com.shuyu.gsyvideoplayer.video.StandardGSYVideoPlayer;
@@ -137,8 +140,13 @@ public class DLNARenderActivity extends AppCompatActivity {
         mImageView.setVisibility(View.INVISIBLE);
         mGSYVideoPlayer = findViewById(R.id.video_view);
 
+        // 设置ijk内核模式
+        PlayerFactory.setPlayManager(IjkPlayerManager.class);
+
         // 关闭全屏动画
         mGSYVideoPlayer.setShowFullAnimation(false);
+
+        mGSYVideoPlayer.setRotateViewAuto(true);
 
         // 设置返回按钮
         mGSYVideoPlayer.getBackButton().setVisibility(View.VISIBLE);
@@ -163,6 +171,11 @@ public class DLNARenderActivity extends AppCompatActivity {
                 // 有问题： 这里开启全屏后，loadding hud 不会隐藏
 //                mGSYVideoPlayer.startWindowFullscreen(DLNARenderActivity.this, true, true);
 
+            }
+
+            @Override
+            public void onPlayError(String url, Object... objects) {
+                Log.d(TAG, "onPlayError: " + url);
             }
         });
 
@@ -222,7 +235,7 @@ public class DLNARenderActivity extends AppCompatActivity {
         if (bundle != null) {
             mProgressBar.setVisibility(View.VISIBLE);
             String currentUri = bundle.getString(KEY_EXTRA_CURRENT_URI);
-            Log.d(TAG, "open Media Uir: "+ currentUri);
+
             // 这个根据Uri 来判断播放音视频，还是播放图片
             if (currentUri.endsWith(".png") || currentUri.endsWith(".jpg")) {
                 Log.d(TAG, "open Media Uir: "+ currentUri);
@@ -230,7 +243,7 @@ public class DLNARenderActivity extends AppCompatActivity {
                 mProgressBar.setVisibility(View.INVISIBLE);
                 mImageView.setImageURL(currentUri);
             } else {
-
+                Log.d(TAG, "open Media Uir: "+ currentUri);
                 mProgressBar.setVisibility(View.INVISIBLE);
 
                 mGSYVideoPlayer.onVideoPause();

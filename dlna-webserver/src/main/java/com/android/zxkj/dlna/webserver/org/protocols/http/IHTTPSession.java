@@ -95,5 +95,5 @@ public interface IHTTPSession {
      * 
      * @return the hostname.
      */
-//    String getRemoteHostName();
+    String getRemoteHostName();
 }
