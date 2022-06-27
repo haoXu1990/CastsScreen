@@ -30,6 +30,7 @@ import com.android.zxkj.dlna.dmr.widget.MyImageView;
 import com.google.android.exoplayer2.Player;
 import com.shuyu.gsyvideoplayer.GSYVideoManager;
 import com.shuyu.gsyvideoplayer.listener.GSYSampleCallBack;
+import com.shuyu.gsyvideoplayer.model.VideoOptionModel;
 import com.shuyu.gsyvideoplayer.player.IjkPlayerManager;
 import com.shuyu.gsyvideoplayer.player.PlayerFactory;
 import com.shuyu.gsyvideoplayer.utils.GSYVideoType;
@@ -56,8 +57,11 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 import tv.danmaku.ijk.media.player.IMediaPlayer;
+import tv.danmaku.ijk.media.player.IjkMediaPlayer;
 
 public class DLNARenderActivity extends AppCompatActivity {
     private static final String KEY_EXTRA_CURRENT_URI = "Renderer.KeyExtra.CurrentUri";
@@ -133,6 +137,24 @@ public class DLNARenderActivity extends AppCompatActivity {
         openMedia(getIntent());
     }
 
+    private void setIJKOptions() {
+        // 关闭硬解码
+        VideoOptionModel videoOptionModel =
+                new VideoOptionModel(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "mediacodec", 0);
+        // 开启软解码
+        VideoOptionModel videoOptionModel1 =
+                new VideoOptionModel(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "videotoolbox", 1);
+
+        // 拖动视频回弹， ijk的FFMPEG对关键帧问题。
+        VideoOptionModel videoOptionModel2 = new VideoOptionModel(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "enable-accurate-seek", 1);
+
+        List<VideoOptionModel> list = new ArrayList<>();
+        list.add(videoOptionModel);
+        list.add(videoOptionModel1);
+        list.add(videoOptionModel2);
+        GSYVideoManager.instance().setOptionModelList(new ArrayList<>());
+    }
+
     private void initCompentGSY() {
         mProgressBar = findViewById(R.id.video_progress);
         mProgressBar.setVisibility(View.INVISIBLE);
@@ -142,6 +164,7 @@ public class DLNARenderActivity extends AppCompatActivity {
 
         // 设置ijk内核模式
         PlayerFactory.setPlayManager(IjkPlayerManager.class);
+        setIJKOptions();
 
         // 关闭全屏动画
         mGSYVideoPlayer.setShowFullAnimation(false);

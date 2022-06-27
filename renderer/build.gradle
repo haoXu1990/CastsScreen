@@ -16,16 +16,47 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        debug {
+            keyAlias "key0"
+            keyPassword '123456'
+            storeFile file('/keys/renderer.jks')
+            storePassword '123456'
+        }
+        release {
+            keyAlias "key0"
+            keyPassword '123456'
+            storeFile file('/keys/renderer.jks')
+            storePassword '123456'
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            zipAlignEnabled true
+            signingConfig signingConfigs.release
+        }
+    }
+    applicationVariants.all { variant ->
+        variant.outputs.each { output ->
+            def outputFile = output.outputFile
+            if (variant.buildType.name == 'release') {
+                def createTime = new Date().format("YYYYMMddhhmm", TimeZone.getTimeZone("GMT+08:00"))
+                def fileName = "Renderer-Release-v${android.defaultConfig.versionName}-${createTime}.apk"
+                output.outputFileName = new File(outputFile.parent, fileName).name
+            } else {
+                def fileName = "Renderer-${variant.buildType.name}-v${android.defaultConfig.versionName}.apk"
+                output.outputFileName = new File(outputFile.parent, fileName).name
+            }
         }
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+
     packagingOptions {
         exclude 'META-INF/beans.xml'
         exclude "META-INF/DEPENDENCIES"

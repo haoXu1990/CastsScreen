@@ -16,12 +16,45 @@ android {
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
+
+    signingConfigs {
+        debug {
+            keyAlias "key0"
+            keyPassword '123456'
+            storeFile file('./keys/cast-screen.jks')
+            storePassword '123456'
+        }
+        release {
+            keyAlias "key0"
+            keyPassword '123456'
+            storeFile file('./keys/cast-screen.jks')
+            storePassword '123456'
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            zipAlignEnabled true
+            signingConfig signingConfigs.release
         }
     }
+
+    applicationVariants.all { variant ->
+        variant.outputs.each { output ->
+            def outputFile = output.outputFile
+            if (variant.buildType.name == 'release') {
+                def createTime = new Date().format("YYYYMMddhhmm", TimeZone.getTimeZone("GMT+08:00"))
+                def fileName = "Cast-Release-v${android.defaultConfig.versionName}-${createTime}.apk"
+                output.outputFileName = new File(outputFile.parent, fileName).name
+            } else {
+                def fileName = "Cast-${variant.buildType.name}-v${android.defaultConfig.versionName}.apk"
+                output.outputFileName = new File(outputFile.parent, fileName).name
+            }
+        }
+    }
+
     packagingOptions {
         exclude 'META-INF/beans.xml'
         exclude "META-INF/DEPENDENCIES"

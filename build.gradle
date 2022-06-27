@@ -58,7 +58,4 @@ ext {
     runnerVersion = "1.2.0"
     junitVersion = "4.12"
 
-
-
-
 }
