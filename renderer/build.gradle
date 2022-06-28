@@ -44,7 +44,7 @@ android {
             def outputFile = output.outputFile
             if (variant.buildType.name == 'release') {
                 def createTime = new Date().format("YYYYMMddhhmm", TimeZone.getTimeZone("GMT+08:00"))
-                def fileName = "Renderer-Release-v${android.defaultConfig.versionName}-${createTime}.apk"
+                def fileName = "ZXRenderer-v${android.defaultConfig.versionName}-${createTime}.apk"
                 output.outputFileName = new File(outputFile.parent, fileName).name
             } else {
                 def fileName = "Renderer-${variant.buildType.name}-v${android.defaultConfig.versionName}.apk"

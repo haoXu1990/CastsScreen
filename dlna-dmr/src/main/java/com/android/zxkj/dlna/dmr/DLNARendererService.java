@@ -113,7 +113,7 @@ public class DLNARendererService extends AndroidUpnpServiceImpl {
 
     @Override
     public void onDestroy() {
-        Log.d(TAG, "onDestroy: ", new Exception());
+//        Log.d(TAG, "onDestroy: ", new Exception());
         if (mRendererDevice != null && upnpService != null && upnpService.getRegistry() != null) {
             upnpService.getRegistry().removeDevice(mRendererDevice);
         }
