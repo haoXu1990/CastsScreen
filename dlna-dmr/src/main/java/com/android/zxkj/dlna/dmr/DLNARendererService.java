@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.IBinder;
+import android.util.Log;
 
 import androidx.core.content.ContextCompat;
 
@@ -45,6 +46,8 @@ import java.security.MessageDigest;
 import java.util.UUID;
 
 public class DLNARendererService extends AndroidUpnpServiceImpl {
+
+    private static final String TAG = "DLNARendererService";
 
     public static void startService(Context context) {
         context.getApplicationContext().startService(new Intent(context, DLNARendererService.class));
@@ -110,6 +113,7 @@ public class DLNARendererService extends AndroidUpnpServiceImpl {
 
     @Override
     public void onDestroy() {
+        Log.d(TAG, "onDestroy: ", new Exception());
         if (mRendererDevice != null && upnpService != null && upnpService.getRegistry() != null) {
             upnpService.getRegistry().removeDevice(mRendererDevice);
         }
