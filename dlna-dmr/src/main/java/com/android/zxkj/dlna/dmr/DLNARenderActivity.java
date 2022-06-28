@@ -177,7 +177,7 @@ public class DLNARenderActivity extends AppCompatActivity {
         mGSYVideoPlayer.getBackButton().setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-//                finish();
+                finish();
                 notifyTransportStateChanged(TransportState.PLAYING);
             }
         });
