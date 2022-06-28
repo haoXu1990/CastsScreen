@@ -273,7 +273,12 @@ public class DLNARenderActivity extends AppCompatActivity {
                 mGSYVideoPlayer.onVideoReset();
                 mGSYVideoPlayer.release();
 
-                mGSYVideoPlayer.setUp(currentUri, true, "");
+                if (currentUri.contains("m3u8")) {
+                    mGSYVideoPlayer.setUp(currentUri, false, "");
+                } else  {
+                    mGSYVideoPlayer.setUp(currentUri, false, "");
+                }
+
                 mGSYVideoPlayer.startPlayLogic();
             }
         } else {
