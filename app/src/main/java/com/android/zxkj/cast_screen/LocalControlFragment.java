@@ -18,6 +18,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.zxkj.dlna.core.utils.CastUtils;
 import com.android.zxkj.dlna.dmc.DLNACastManager;
@@ -69,10 +70,6 @@ public class LocalControlFragment extends Fragment implements IDisplayDevice {
             mCastPathUrl = transfromStr;
             mCastPathUrl = mMediaServer.getBaseUrl() + mCastPathUrl; //path;
             mPickupContent.setText(mCastPathUrl);
-            PreferenceManager.getDefaultSharedPreferences(getActivity())
-                    .edit()
-                    .putString("selectPath", mCastPathUrl)
-                    .apply();
         }
     }
 
@@ -89,10 +86,8 @@ public class LocalControlFragment extends Fragment implements IDisplayDevice {
     }
 
     private void initComponent(View view) {
-        String selectPath = PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("selectPath", "");
         mPickupContent = view.findViewById(R.id.local_ctrl_pick_content_text);
-        mPickupContent.setText(selectPath);
-        mCastPathUrl = selectPath;
+
         view.findViewById(R.id.local_ctrl_pick_content).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -104,22 +99,12 @@ public class LocalControlFragment extends Fragment implements IDisplayDevice {
         view.findViewById(R.id.local_ctrl_cast).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (mDevice != null) {
+                if (mDevice != null && mCastPathUrl != null) {
                     DLNACastManager.getInstance().cast(mDevice,
                             CastObject.newInstance(mCastPathUrl, Constants.CAST_ID, Constants.CAST_NAME));
+                } else {
 
-//                    String[] array = mCastPathUrl.split(":");
-//                    if (array.length > 1) {
-//                        String last = array[1];
-//                        if (last.equals("jpg")  || last.equals("png")) {
-//
-//
-//                        }else {
-//                            DLNACastManager.getInstance().cast(mDevice,
-//                                    CastObject.CastVideo.newInstance(mCastPathUrl, Constants.CAST_ID, Constants.CAST_NAME));
-//                        }
-//                    }
-
+                    Toast.makeText(getActivity().getApplicationContext(), "设备或则投射内容未选择", Toast.LENGTH_SHORT).show();
                 }
             }
         });

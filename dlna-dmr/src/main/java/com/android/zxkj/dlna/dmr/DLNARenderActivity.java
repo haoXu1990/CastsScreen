@@ -138,21 +138,33 @@ public class DLNARenderActivity extends AppCompatActivity {
     }
 
     private void setIJKOptions() {
-        // 关闭硬解码
+
+        List<VideoOptionModel> list = new ArrayList<>();
+
+        // 硬解码
         VideoOptionModel videoOptionModel =
-                new VideoOptionModel(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "mediacodec", 0);
-        // 开启软解码
+                new VideoOptionModel(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "mediacodec", 1);
+        list.add(videoOptionModel);
+
+        // 软解码
         VideoOptionModel videoOptionModel1 =
-                new VideoOptionModel(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "videotoolbox", 1);
+                new VideoOptionModel(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "videotoolbox", 0);
+        list.add(videoOptionModel1);
 
         // 拖动视频回弹， ijk的FFMPEG对关键帧问题。
         VideoOptionModel videoOptionModel2 = new VideoOptionModel(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "enable-accurate-seek", 1);
-
-        List<VideoOptionModel> list = new ArrayList<>();
-        list.add(videoOptionModel);
-        list.add(videoOptionModel1);
         list.add(videoOptionModel2);
-        GSYVideoManager.instance().setOptionModelList(new ArrayList<>());
+
+        // 丢帧, 如果音画不同步，可以尝试丢帧
+        VideoOptionModel videoOptionMode03 = new VideoOptionModel(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "framedrop", 5);
+        list.add(videoOptionMode03);
+
+        // 多次频繁调用播放器，清空 dns 缓存
+        // Server returned 4XX Client Error, but not one of 40{0,1,3,4} 这个错误好像也能解决，目前正在测试
+        VideoOptionModel videoOptionModel04 = new VideoOptionModel(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "dns_cache_clear", 1);
+        list.add(videoOptionModel04);
+
+        GSYVideoManager.instance().setOptionModelList(list);
     }
 
     private void initCompentGSY() {
@@ -164,6 +176,8 @@ public class DLNARenderActivity extends AppCompatActivity {
 
         // 设置ijk内核模式
         PlayerFactory.setPlayManager(IjkPlayerManager.class);
+
+        // ijkMediaPlayer 一些配置
         setIJKOptions();
 
         // 关闭全屏动画
@@ -189,16 +203,13 @@ public class DLNARenderActivity extends AppCompatActivity {
                 orientationUtils.setEnable(true);
                 Log.d(TAG, "onPrepared: ");
                 notifyTransportStateChanged(TransportState.PLAYING);
-
-                // 开启全屏
-                // 有问题： 这里开启全屏后，loadding hud 不会隐藏
-//                mGSYVideoPlayer.startWindowFullscreen(DLNARenderActivity.this, true, true);
-
             }
 
             @Override
             public void onPlayError(String url, Object... objects) {
-                Log.d(TAG, "onPlayError: " + url);
+                Log.d(TAG, "onPlayError: " + url + "objects: " + objects);
+                Toast.makeText(getApplicationContext(),"播放失败", Toast.LENGTH_SHORT).show();
+                finish();
             }
         });
 
@@ -273,11 +284,15 @@ public class DLNARenderActivity extends AppCompatActivity {
                 mGSYVideoPlayer.onVideoReset();
                 mGSYVideoPlayer.release();
 
-                if (currentUri.contains("m3u8")) {
-                    mGSYVideoPlayer.setUp(currentUri, false, "");
-                } else  {
-                    mGSYVideoPlayer.setUp(currentUri, false, "");
-                }
+                mGSYVideoPlayer.setUp(currentUri, false, "");
+
+//                if (currentUri.contains("m3u8")) {
+//                    Log.d(TAG, "openMedia: cache = " + false);
+//                    mGSYVideoPlayer.setUp(currentUri, false, "");
+//                } else  {
+//                    Log.d(TAG, "openMedia: cache = " + true);
+//                    mGSYVideoPlayer.setUp(currentUri, false, "");
+//                }
 
                 mGSYVideoPlayer.startPlayLogic();
             }

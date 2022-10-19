@@ -5,8 +5,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.Manifest;
 import android.app.ActivityManager;
 import android.content.Context;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.TextView;
 
 import com.android.zxkj.dlna.core.utils.DeviceWiFiInfo;
@@ -24,10 +26,20 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         setSupportActionBar(findViewById(R.id.toolbar));
+
         PermissionX.init(this)
                 .permissions(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION)
                 .request((allGranted, grantedList, deniedList) -> resetWifiInfo());
         startRendererService();
+    }
+
+
+    private void init() {
+        getWindow().getDecorView().setSystemUiVisibility(
+                View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                        | View.SYSTEM_UI_FLAG_FULLSCREEN
+                        |View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+        );
     }
 
     @Override
